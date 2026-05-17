@@ -75,14 +75,29 @@
                 <x-input id="email" class="block mt-1 w-full focus:border-[#a588b8]" type="email" name="email" :value="old('email')" required autocomplete="username" placeholder="nombre@correo.com"/>
             </div>
 
-            <div class="mt-4">
+            <div class="mt-4" x-data="{
+            showPassword: false }">
                 <x-label for="password" value="{{ __('Contraseña') }}" />
-                <x-input id="password" class="block mt-1 w-full" type="password" name="password" required autocomplete="new-password" placeholder="Mínimo 8 caracteres"/>
+
+                <div class="relative">
+                    <x-input id="password" class="block mt-1 w-full pr-10" x-bind:type="showPassword ? 'text' : 'password'" name="password" required autocomplete="new-password" placeholder="Mínimo 8 caracteres"/>
+
+                    <button type="button" @click="showPassword = !showPassword" class="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-500 hover:text-[#a66cc9] transition duration-200">
+                        <i class="fa-solid" :class="showPassword ? 'fa-eye-slash' : 'fa-eye'"></i>
+                    </button>
+                </div>
             </div>
 
-            <div class="mt-4">
+            <div class="mt-4" x-data="{
+            showConfirm: false }">
                 <x-label for="password_confirmation" value="{{ __('Confirmar Contraseña') }}" />
-                <x-input id="password_confirmation" class="block mt-1 w-full" type="password" name="password_confirmation" required autocomplete="new-password" />
+                <div class="relative">
+                    <x-input id="password_confirmation" class="block mt-1 w-full pr-10" x-bind:type="showConfirm ? 'text' : 'password'" name="password_confirmation" required autocomplete="new-password" />
+
+                    <button type="button" @click="showConfirm = !showConfirm" class="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-500 hover:text-[#a66cc9] transition">
+                        <i class="fa-solid" :class="showConfirm ? 'fa-eye-slash' : 'fa-eye'"></i>
+                    </button>
+                </div>
             </div>
 
             @if (Laravel\Jetstream\Jetstream::hasTermsAndPrivacyPolicyFeature())

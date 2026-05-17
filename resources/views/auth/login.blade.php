@@ -20,9 +20,17 @@
                 <x-input id="email" class="block mt-1 w-full" type="email" name="email" :value="old('email')" required autofocus autocomplete="username" />
             </div>
 
-            <div class="mt-4">
+            <div class="mt-4" x-data="{
+            showPassword: false }">
                 <x-label for="password" value="{{ __('Contraseña') }}" />
-                <x-input id="password" class="block mt-1 w-full" type="password" name="password" required autocomplete="current-password" />
+
+                <div class="relative">
+                    <x-input id="password" class="block mt-1 w-full pr-10" x-bind:type="showPassword ? 'text' :  'password'" name="password" required autocomplete="current-password" />
+
+                    <button type="button" @click="showPassword = !showPassword" class="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-500 hover:text-[#a66cc9] transition duration-200">
+                        <i class="fa-solid" :class="showPassword ? 'fa-eye-slash' : 'fa-eye'"></i>
+                    </button>
+                </div>
             </div>
 
             <div class="block mt-4">
