@@ -22,6 +22,7 @@ class CreateNewUser implements CreatesNewUsers
         Validator::make($input, [
             'name' => ['required', 'string', 'max:255'],
             'email' => ['required', 'string', 'email', 'max:255', 'unique:users'],
+            'phone' => ['required', 'digits:10', 'unique:users'],
             'password' => $this->passwordRules(),
             'photo' => ['nullable', 'mimes:jpg,jpeg,png', 'max:1024'],
             'terms' => Jetstream::hasTermsAndPrivacyPolicyFeature() ? ['accepted', 'required'] : '',
@@ -30,12 +31,15 @@ class CreateNewUser implements CreatesNewUsers
         $user = User::create([
             'name' => $input['name'],
             'email' => $input['email'],
+            'phone' => $input['phone'],
             'password' => Hash::make($input['password']),
         ]);
 
         if (isset($input['photo'])) {
             $user->updateProfilePhoto($input['photo']);
         }
+
+        $user->assignRole('Cliente');
 
         return $user;
     }

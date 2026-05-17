@@ -51,9 +51,23 @@
                 <x-input id="name" class="block mt-1 w-full" type="text" name="name" :value="old('name')" required autofocus autocomplete="name" placeholder="Ej. María González" />
             </div>
 
-            <div class="mt-4">
+            <div class="mt-4" x-data="{
+                rawPhone: '{{ old('phone') }}',
+                formattedPhone: '',
+                formatPhone() {
+                    let cleaned = ('' + this.rawPhone).replace(/\D/g, '').substring(0, 10);
+                    this.rawPhone = cleaned;
+                    let match = cleaned.match(/^(\d{0,3})(\d{0,3})(\d{0,4})$/);
+                    if (match) {
+                        this.formattedPhone = !match[2] ? match[1] : '(' + match[1] + ') ' + match[2] + (match[3] ? '-' + match[3] : '');
+                    }
+                }
+            }" x-init="formatPhone()">
                 <x-label for="phone" value="{{ __('Télefono Celular') }}" />
-                <x-input id="phone" class="block mt-1 w-full" type="tel" name="phone" :value="old('phone')" required autocomplete="phone" placeholder="Ej. 999 123 4567" />
+                <input type="hidden" name="phone" x-model="rawPhone" />
+                <x-input id="phone_display" class="block mt-1 w-full" type="tel" inputmode="tel" required autocomplete="phone" placeholder="(999) 123-4567" 
+                    x-model="formattedPhone"
+                    @input="rawPhone = $event.target.value; formatPhone()" />
             </div>
             
             <div class="mt-4">
@@ -61,14 +75,29 @@
                 <x-input id="email" class="block mt-1 w-full focus:border-[#a588b8]" type="email" name="email" :value="old('email')" required autocomplete="username" placeholder="nombre@correo.com"/>
             </div>
 
-            <div class="mt-4">
+            <div class="mt-4" x-data="{
+            showPassword: false }">
                 <x-label for="password" value="{{ __('Contraseña') }}" />
-                <x-input id="password" class="block mt-1 w-full" type="password" name="password" required autocomplete="new-password" placeholder="Mínimo 8 caracteres"/>
+
+                <div class="relative">
+                    <x-input id="password" class="block mt-1 w-full pr-10" x-bind:type="showPassword ? 'text' : 'password'" name="password" required autocomplete="new-password" placeholder="Mínimo 8 caracteres"/>
+
+                    <button type="button" @click="showPassword = !showPassword" class="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-500 hover:text-[#a66cc9] transition duration-200">
+                        <i class="fa-solid" :class="showPassword ? 'fa-eye-slash' : 'fa-eye'"></i>
+                    </button>
+                </div>
             </div>
 
-            <div class="mt-4">
+            <div class="mt-4" x-data="{
+            showConfirm: false }">
                 <x-label for="password_confirmation" value="{{ __('Confirmar Contraseña') }}" />
-                <x-input id="password_confirmation" class="block mt-1 w-full" type="password" name="password_confirmation" required autocomplete="new-password" />
+                <div class="relative">
+                    <x-input id="password_confirmation" class="block mt-1 w-full pr-10" x-bind:type="showConfirm ? 'text' : 'password'" name="password_confirmation" required autocomplete="new-password" />
+
+                    <button type="button" @click="showConfirm = !showConfirm" class="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-500 hover:text-[#a66cc9] transition">
+                        <i class="fa-solid" :class="showConfirm ? 'fa-eye-slash' : 'fa-eye'"></i>
+                    </button>
+                </div>
             </div>
 
             @if (Laravel\Jetstream\Jetstream::hasTermsAndPrivacyPolicyFeature())
