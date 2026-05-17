@@ -18,10 +18,11 @@
         @livewireStyles
     </head>
     <body>
-        <div class="font-sans text-gray-900 antialiased">
+        <div class="font-sans text-[#2c1a36] antialiased bg-[#F6EBFF]">
             {{ $slot }}
         </div>
 
         @livewireScripts
+        <script src="https://kit.fontawesome.com/d06f8df15d.js" crossorigin="anonymous"></script>
     </body>
 </html>
