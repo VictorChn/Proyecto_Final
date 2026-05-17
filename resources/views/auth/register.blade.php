@@ -51,9 +51,23 @@
                 <x-input id="name" class="block mt-1 w-full" type="text" name="name" :value="old('name')" required autofocus autocomplete="name" placeholder="Ej. María González" />
             </div>
 
-            <div class="mt-4">
+            <div class="mt-4" x-data="{
+                rawPhone: '{{ old('phone') }}',
+                formattedPhone: '',
+                formatPhone() {
+                    let cleaned = ('' + this.rawPhone).replace(/\D/g, '').substring(0, 10);
+                    this.rawPhone = cleaned;
+                    let match = cleaned.match(/^(\d{0,3})(\d{0,3})(\d{0,4})$/);
+                    if (match) {
+                        this.formattedPhone = !match[2] ? match[1] : '(' + match[1] + ') ' + match[2] + (match[3] ? '-' + match[3] : '');
+                    }
+                }
+            }" x-init="formatPhone()">
                 <x-label for="phone" value="{{ __('Télefono Celular') }}" />
-                <x-input id="phone" class="block mt-1 w-full" type="tel" name="phone" :value="old('phone')" required autocomplete="phone" placeholder="Ej. 999 123 4567" />
+                <input type="hidden" name="phone" x-model="rawPhone" />
+                <x-input id="phone_display" class="block mt-1 w-full" type="tel" inputmode="tel" required autocomplete="phone" placeholder="(999) 123-4567" 
+                    x-model="formattedPhone"
+                    @input="rawPhone = $event.target.value; formatPhone()" />
             </div>
             
             <div class="mt-4">
