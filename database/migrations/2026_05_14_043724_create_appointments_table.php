@@ -17,9 +17,7 @@ return new class extends Migration
             $table->foreignId('specialist_id')->constrained()->onDelete('cascade');
             $table->date('scheduled_date');
             $table->time('time');
-            $table->decimal('total_price', 8, 2)->default(0);
             $table->enum('status', ['pending', 'confirmed', 'completed', 'cancelled'])->default('pending');
-            $table->text('notes')->nullable();
             $table->timestamps();
             $table->softDeletes();
         });

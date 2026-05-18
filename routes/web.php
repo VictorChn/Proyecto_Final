@@ -6,8 +6,11 @@ Route::get('/', function () {
     return view('welcome');
 });
 
+use App\Models\Service;
+
 Route::get('/services', function () {
-    return view('services');
+    $services = Service::all();
+    return view('services', compact('services'));
 })->name('services');
 
 Route::middleware([
@@ -36,6 +39,10 @@ Route::middleware(['auth:sanctum', 'role:Administrador'])->group(function(){
 
 
 Route::middleware(['auth:sanctum', 'role:Cliente'])->group(function(){
+    Route::get('/seleccionar-servicio', function(){
+        return view('sclient.seleccionar-servicio');
+    })->name('seleccionar');
+    
     Route::get('/agendar', function(){
         return view('sclient.agendar');
     })->name('agendar');

@@ -17,9 +17,7 @@ class Appointment extends Model
         'specialist_id',
         'scheduled_date',
         'time',
-        'total_price',
         'status',
-        'notes',
     ];
 
     public function client(): BelongsTo
@@ -34,6 +32,6 @@ class Appointment extends Model
 
     public function services(): BelongsToMany
     {
-        return $this->belongsToMany(Service::class)->withPivot('price')->withTimestamps();
+        return $this->belongsToMany(Service::class)->withTimestamps();
     }
 }
