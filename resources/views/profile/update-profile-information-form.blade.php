@@ -81,6 +81,28 @@
                 @endif
             @endif
         </div>
+
+        <div class="col-span-6 sm:col-span-4" x-data="{
+                rawPhone: @entangle('state.phone'),
+                formattedPhone: '',
+                formatPhone() {
+                    let cleaned = ('' + (this.rawPhone || '')).replace(/\D/g, '').substring(0, 10);
+                    this.rawPhone = cleaned;
+                    let match = cleaned.match(/^(\d{0,3})(\d{0,3})(\d{0,4})$/);
+                    if (match) {
+                        this.formattedPhone = !match[2] ? match[1] : '(' + match[1] + ') ' + match[2] + (match[3] ? '-' + match[3] : '');
+                    } else {
+                        this.formattedPhone = cleaned;
+                    }
+                }
+            }" x-init="$watch('rawPhone', value => formatPhone()); formatPhone()">
+            <x-label for="phone" value="{{ __('Telefono') }}" />
+            <x-input id="phone_display" type="tel" class="mt-1 block w-full" 
+                x-model="formattedPhone"
+                @input="rawPhone = $event.target.value; formatPhone()"
+                required autocomplete="tel" placeholder="(999) 123-4567" />
+            <x-input-error for="phone" class="mt-2" />
+        </div>
     </x-slot>
 
     <x-slot name="actions">

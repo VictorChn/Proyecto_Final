@@ -8,14 +8,9 @@ use Symfony\Component\HttpFoundation\Response;
 
 class RoleMiddleware
 {
-    /**
-     * Handle an incoming request.
-     *
-     * @param  Closure(Request): (Response)  $next
-     */
     public function handle(Request $request, Closure $next, ...$roles): Response
     {
-        if (!$request->user() || !in_array($request->user()->role, $roles)) {
+        if (!$request->user() || !$request->user()->hasAnyRole($roles)) {
             return response()->json(['message' => 'No tienes permisos para acceder a este recurso.'], 403);
         }
 

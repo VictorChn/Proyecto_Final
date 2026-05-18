@@ -24,8 +24,8 @@ class AuthController extends Controller
             'email' => $validatedData['email'],
             'password' => Hash::make($validatedData['password']),
             'phone' => $validatedData['phone'] ?? null,
-            'role' => 'client', // Siempre se crea como cliente por defecto en este endpoint
         ]);
+        $user->assignRole('Cliente');
 
         $token = $user->createToken('auth_token')->plainTextToken;
 

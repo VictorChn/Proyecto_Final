@@ -11,10 +11,10 @@ class Service extends Model
 {
     use SoftDeletes;
 
-    protected $fillable = ['name', 'description', 'price'];
+    protected $fillable = ['name', 'description', 'category', 'price', 'duration'];
 
     public function appointments(): BelongsToMany
     {
-        return $this->belongsToMany(Appointment::class)->withPivot('price')->withTimestamps();
+        return $this->belongsToMany(Appointment::class)->withTimestamps();
     }
 }
