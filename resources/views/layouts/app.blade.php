@@ -87,5 +87,7 @@
                 });
             });
         </script>
+
+        <script src="https://kit.fontawesome.com/d06f8df15d.js" crossorigin="anonymous"></script>
     </body>
 </html>

@@ -47,10 +47,10 @@
                         </td>
                         <td class="px-5 py-5 border-b border-gray-200 bg-white text-sm text-center">
                             <button wire:click="editService({{ $service->id }})" class="text-blue-600 hover:text-blue-900 mr-3">
-                                Editar
+                                <i class="fa-solid fa-pen-to-square text-xl"></i>
                             </button>
                             <button wire:click="confirmDelete({{ $service->id }})" class="text-red-600 hover:text-red-900">
-                                Eliminar
+                                <i class="fa-solid fa-trash text-xl"></i>
                             </button>
                         </td>
                     </tr>

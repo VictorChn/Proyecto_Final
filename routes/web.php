@@ -26,7 +26,14 @@ Route::middleware([
         } elseif ($user->hasRole('Estilista')){
             return view('stylist.dashboard');
         } else {
-            return view('sclient.dashboard');
+            $activeAppointments = \App\Models\Appointment::where('client_id', $user->id)
+                ->whereNotIn('status', ['completed', 'realizada', 'cancelled', 'cancelada'])
+                ->with(['specialist.user', 'services'])
+                ->orderBy('scheduled_date', 'asc')
+                ->orderBy('time', 'asc')
+                ->get();
+
+            return view('sclient.dashboard', compact('activeAppointments'));
         }
     })->name('dashboard');
 });
@@ -43,9 +50,21 @@ Route::middleware(['auth:sanctum', 'role:Administrador'])->group(function(){
 
 
 Route::middleware(['auth:sanctum', 'role:Cliente'])->group(function(){
-    Route::get('/seleccionar-servicio', function(){
-        return view('sclient.seleccionar-servicio');
-    })->name('seleccionar');
+    Route::get('/seleccionar-servicios', function(){
+        return view('sclient.seleccionar-servicios');
+    })->name('seleccionar-servicios');
+
+    Route::get('/historial-citas', function(){
+        $user = auth()->user();
+        $completedAppointments = \App\Models\Appointment::where('client_id', $user->id)
+            ->whereIn('status', ['completed', 'realizada'])
+            ->with(['specialist.user', 'services'])
+            ->orderBy('scheduled_date', 'desc')
+            ->orderBy('time', 'desc')
+            ->get();
+
+        return view('sclient.historial-citas', compact('completedAppointments'));
+    })->name('sclient.historial-citas');
     
     Route::get('/agendar', function(){
         return view('sclient.agendar');

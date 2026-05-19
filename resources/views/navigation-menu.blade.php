@@ -13,15 +13,33 @@
                 <!-- Navigation Links -->
                 <div class="hidden space-x-8 sm:-my-px sm:ms-10 sm:flex">
                     <x-nav-link href="{{ route('dashboard') }}" :active="request()->routeIs('dashboard')">
-                        {{ __('Dashboard') }}
+                        <div class="flex flex-col items-center gap-2">
+                            <i class="fa-solid fa-house text-xl"></i>
+                            {{ __('Dashboard') }}
+                        </div>
                     </x-nav-link>
 
                     @if(Auth::user()->hasRole('Administrador'))
                     <x-nav-link href="{{ route('admin.users') }}" :active="request()->routeIs('admin.users')">
-                        {{ __('Estilistas') }}
+                        <div class="flex flex-col items-center gap-2">
+                            <i class="fa-solid fa-user-tie text-xl"></i>
+                            {{ __('Estilistas') }}
+                        </div>
                     </x-nav-link>
                     <x-nav-link href="{{ route('admin.services') }}" :active="request()->routeIs('admin.services')">
-                        {{ __('Servicios') }}
+                        <div class="flex flex-col items-center gap-2">
+                            <i class="fa-solid fa-scissors text-xl"></i>
+                            {{ __('Servicios') }}
+                        </div>
+                    </x-nav-link>
+                    @endif
+
+                    @if(Auth::user()->hasRole('Cliente'))
+                    <x-nav-link href="{{ route('sclient.historial-citas') }}" :active="request()->routeIs('sclient.historial-citas')">
+                        <div class="flex flex-col items-center gap-2">
+                            <i class="fa-solid fa-calendar-check text-xl"></i>
+                            {{ __('Historial de citas') }}
+                        </div>
                     </x-nav-link>
                     @endif
                 </div>
@@ -108,6 +126,7 @@
                             </div>
 
                             <x-dropdown-link href="{{ route('profile.show') }}">
+                                <i class="fa-solid fa-circle-user"></i>
                                 {{ __('Profile') }}
                             </x-dropdown-link>
 
@@ -125,6 +144,7 @@
 
                                 <x-dropdown-link href="{{ route('logout') }}"
                                          @click.prevent="$root.submit();">
+                                         <i class="fa-solid fa-right-from-bracket"></i>
                                     {{ __('Log Out') }}
                                 </x-dropdown-link>
                             </form>

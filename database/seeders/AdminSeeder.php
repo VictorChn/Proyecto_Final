@@ -3,6 +3,7 @@
 namespace Database\Seeders;
 
 use App\Models\User;
+use App\Models\Specialist;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\Hash;
 
@@ -39,5 +40,11 @@ class AdminSeeder extends Seeder
             'profile_photo_path' => 'profile-photos/H8guYGRfrF27P6agfnhHlhiLXYgeO9ziJXph3lCc.jpg',
         ]);
         $stylist->assignRole('Estilista');
+
+        Specialist::create([
+            'user_id' => $stylist->id,
+            'specialty' => 'Estilista General',
+            'active' => true,
+        ]);
     }
 }
