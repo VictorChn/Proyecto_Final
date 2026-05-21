@@ -26,7 +26,7 @@
                         </div>
                         <h3 class="font-bold text-lg">Aún no tienes un historial de citas</h3>
                         <p class="text-xs text-gray-400 mt-1 max-w-sm text-center px-4">
-                            Tus citas finalizadas aparecerán aquí una vez que el personal del salón las marque como completadas.
+                            Tus citas finalizadas o canceladas aparecerán aquí como registro histórico.
                         </p>
                     </div>
                 @else
@@ -56,9 +56,15 @@
                                         <i class="fa-regular fa-calendar text-xs text-[#c791e8]"></i>
                                         <span class="text-xs font-bold capitalize text-gray-700">{{ $formattedDate }}</span>
                                     </div>
-                                    <span class="px-2.5 py-0.5 bg-green-100 text-green-800 text-[10px] font-bold rounded-full uppercase tracking-wider">
-                                        Completada
-                                    </span>
+                                    @if($appointment->status === 'cancelled' || $appointment->status === 'cancelada')
+                                        <span class="px-2.5 py-0.5 bg-red-50 text-red-700 text-[10px] font-bold rounded-full uppercase tracking-wider">
+                                            Cancelada
+                                        </span>
+                                    @else
+                                        <span class="px-2.5 py-0.5 bg-green-100 text-green-800 text-[10px] font-bold rounded-full uppercase tracking-wider">
+                                            Completada
+                                        </span>
+                                    @endif
                                 </div>
 
                                 <!-- Card Body -->
@@ -95,7 +101,11 @@
                                         Duración total: <span class="font-bold text-gray-600">{{ $durationText }}</span>
                                     </div>
                                     <div class="font-bold text-gray-700 text-sm">
-                                        Monto Pagado: <span class="text-[#c791e8]">${{ number_format($totalPrice, 2) }}</span>
+                                        @if($appointment->status === 'cancelled' || $appointment->status === 'cancelada')
+                                            Monto Cancelado: <span class="text-red-500 line-through">${{ number_format($totalPrice, 2) }}</span>
+                                        @else
+                                            Monto Pagado: <span class="text-[#c791e8]">${{ number_format($totalPrice, 2) }}</span>
+                                        @endif
                                     </div>
                                 </div>
 

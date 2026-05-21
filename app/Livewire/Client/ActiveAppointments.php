@@ -1,0 +1,255 @@
+<?php
+
+namespace App\Livewire\Client;
+
+use Livewire\Component;
+use App\Models\Appointment;
+use App\Models\Specialist;
+use App\Mail\AppointmentRescheduled;
+use App\Mail\AppointmentCancelled;
+use Carbon\Carbon;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Mail;
+use Livewire\Attributes\On;
+
+class ActiveAppointments extends Component
+{
+    public $isRescheduling = false;
+    public $reschedulingAppointmentId = null;
+    public $selectedDate = '';
+    public $selectedTime = '';
+
+    public function mount()
+    {
+        $this->selectedDate = Carbon::today()->format('Y-m-d');
+    }
+
+    public function render()
+    {
+        $user = Auth::user();
+        
+        $activeAppointments = Appointment::where('client_id', $user->id)
+            ->whereNotIn('status', ['completed', 'realizada', 'cancelled', 'cancelada'])
+            ->with(['specialist.user', 'services'])
+            ->orderBy('scheduled_date', 'asc')
+            ->orderBy('time', 'asc')
+            ->get();
+
+        return view('livewire.client.active-appointments', compact('activeAppointments'));
+    }
+
+    public function confirmCancel($id)
+    {
+        $appointment = Appointment::findOrFail($id);
+
+        // Check 24 hour limit in backend to prevent manual payload injection
+        $appointmentDateTime = Carbon::parse($appointment->scheduled_date . ' ' . $appointment->time);
+        if (Carbon::now()->diffInHours($appointmentDateTime, false) < 24) {
+            $this->dispatch('swal:error', title: 'Acción Bloqueada', text: 'No puedes cancelar una cita con menos de 24 horas de anticipación.');
+            return;
+        }
+
+        $this->dispatch('swal:confirm-cancel-appointment', id: $id);
+    }
+
+    #[On('cancel-appointment-confirmed')]
+    public function cancelAppointment($id)
+    {
+        $id = $id['id'] ?? $id;
+        $appointment = Appointment::with(['client', 'specialist.user', 'services'])->findOrFail($id);
+
+        // Check 24 hour limit in backend
+        $appointmentDateTime = Carbon::parse($appointment->scheduled_date . ' ' . $appointment->time);
+        if (Carbon::now()->diffInHours($appointmentDateTime, false) < 24) {
+            $this->dispatch('swal:error', title: 'Acción Bloqueada', text: 'No puedes cancelar una cita con menos de 24 horas de anticipación.');
+            return;
+        }
+
+        $appointment->status = 'cancelled';
+        $appointment->save();
+
+        // Send confirmation email to client
+        try {
+            Mail::to($appointment->client->email)->send(new AppointmentCancelled($appointment, 'client'));
+        } catch (\Exception $e) {
+            logger('Error sending appointment cancellation email to client: ' . $e->getMessage());
+        }
+
+        // Send notification email to stylist
+        try {
+            if ($appointment->specialist && $appointment->specialist->user) {
+                Mail::to($appointment->specialist->user->email)->send(new AppointmentCancelled($appointment, 'stylist'));
+            }
+        } catch (\Exception $e) {
+            logger('Error sending appointment cancellation email to stylist: ' . $e->getMessage());
+        }
+
+        $this->dispatch('swal:success', title: '¡Cita Cancelada!', text: 'Tu cita ha sido cancelada correctamente y se ha notificado por correo.');
+    }
+
+    public function startReschedule($id)
+    {
+        $appointment = Appointment::findOrFail($id);
+
+        // Check 24 hour limit
+        $appointmentDateTime = Carbon::parse($appointment->scheduled_date . ' ' . $appointment->time);
+        if (Carbon::now()->diffInHours($appointmentDateTime, false) < 24) {
+            $this->dispatch('swal:error', title: 'Acción Bloqueada', text: 'No puedes reagendar una cita con menos de 24 horas de anticipación.');
+            return;
+        }
+
+        $this->reschedulingAppointmentId = $id;
+        $this->selectedDate = $appointment->scheduled_date;
+        $this->selectedTime = ''; // Clear time selection so they must choose a new one
+        $this->isRescheduling = true;
+    }
+
+    public function closeReschedule()
+    {
+        $this->isRescheduling = false;
+        $this->reschedulingAppointmentId = null;
+        $this->selectedTime = '';
+    }
+
+    public function getTimeSlotsProperty()
+    {
+        if (!$this->selectedDate || !$this->reschedulingAppointmentId) {
+            return [];
+        }
+
+        $date = Carbon::parse($this->selectedDate);
+
+        // Salon schedule is Monday to Friday only
+        if ($date->isWeekend()) {
+            return [];
+        }
+
+        $appointment = Appointment::with('services')->find($this->reschedulingAppointmentId);
+        if (!$appointment) {
+            return [];
+        }
+
+        $specialist = $appointment->specialist;
+        if (!$specialist) {
+            return [];
+        }
+
+        $totalDuration = $appointment->services->sum('duration') ?: 30;
+
+        // Retrieve existing non-cancelled appointments for this specialist on selected date
+        // Exclude the current appointment itself from this check!
+        $existingAppointments = Appointment::where('specialist_id', $specialist->id)
+            ->where('scheduled_date', $this->selectedDate)
+            ->where('status', '!=', 'cancelled')
+            ->where('id', '!=', $this->reschedulingAppointmentId)
+            ->with('services')
+            ->get();
+
+        $busyRanges = [];
+        foreach ($existingAppointments as $app) {
+            $startApp = Carbon::parse($this->selectedDate . ' ' . $app->time);
+            $durationApp = $app->services->sum('duration');
+            $endApp = $startApp->copy()->addMinutes($durationApp);
+            $busyRanges[] = [
+                'start' => $startApp,
+                'end' => $endApp,
+            ];
+        }
+
+        $slots = [];
+        $start = Carbon::createFromTime(8, 0, 0); // 8:00 AM
+        $end = Carbon::createFromTime(17, 0, 0); // 5:00 PM
+
+        while ($start->copy()->addMinutes($totalDuration)->lte($end)) {
+            $slotTime = $start->format('H:i');
+            $slotStart = Carbon::parse($this->selectedDate . ' ' . $start->format('H:i:s'));
+            $slotEnd = $slotStart->copy()->addMinutes($totalDuration);
+
+            $isAvailable = true;
+
+            // Check if this slot overlaps with any busy ranges
+            foreach ($busyRanges as $busy) {
+                if ($slotStart->lt($busy['end']) && $slotEnd->gt($busy['start'])) {
+                    $isAvailable = false;
+                    break;
+                }
+            }
+
+            // If the date is today, check that the slot time is in the future
+            if ($date->isToday()) {
+                $slotDateTime = Carbon::parse($this->selectedDate . ' ' . $slotTime);
+                if ($slotDateTime->lt(Carbon::now())) {
+                    $isAvailable = false;
+                }
+            }
+
+            $slots[] = [
+                'time' => $slotTime,
+                'available' => $isAvailable,
+            ];
+
+            $start->addMinutes(30); // 30-minute interval slots
+        }
+
+        return $slots;
+    }
+
+    public function updatedSelectedDate($value)
+    {
+        $this->selectedTime = '';
+        if ($value) {
+            $date = Carbon::parse($value);
+            if ($date->isWeekend()) {
+                $this->addError('selectedDate', 'La estética labora únicamente de lunes a viernes.');
+            } else {
+                $this->resetErrorBag('selectedDate');
+            }
+        }
+    }
+
+    public function saveReschedule()
+    {
+        $this->validate([
+            'selectedDate' => 'required|date',
+            'selectedTime' => 'required',
+        ], [
+            'selectedDate.required' => 'La fecha es obligatoria.',
+            'selectedTime.required' => 'Debes seleccionar una hora.',
+        ]);
+
+        $appointment = Appointment::with(['client', 'specialist.user', 'services'])->findOrFail($this->reschedulingAppointmentId);
+
+        // Check 24 hour limit
+        $appointmentDateTime = Carbon::parse($appointment->scheduled_date . ' ' . $appointment->time);
+        if (Carbon::now()->diffInHours($appointmentDateTime, false) < 24) {
+            $this->dispatch('swal:error', title: 'Acción Bloqueada', text: 'No puedes reagendar una cita con menos de 24 horas de anticipación.');
+            return;
+        }
+
+        // Verify if slot is available again to prevent race conditions
+        $availableSlots = collect($this->timeSlots);
+        $selectedSlot = $availableSlots->firstWhere('time', $this->selectedTime);
+        if (!$selectedSlot || !$selectedSlot['available']) {
+            $this->addError('selectedTime', 'Este horario ya no está disponible.');
+            return;
+        }
+
+        // Update appointment scheduled date and time
+        $appointment->scheduled_date = $this->selectedDate;
+        $appointment->time = $this->selectedTime;
+        $appointment->status = 'pending'; // Reset to pending after reschedule to be approved again
+        $appointment->save();
+
+        // Send email confirmation of rescheduled appointment
+        try {
+            Mail::to($appointment->client->email)->send(new AppointmentRescheduled($appointment));
+        } catch (\Exception $e) {
+            logger('Error sending appointment reschedule email: ' . $e->getMessage());
+        }
+
+        $this->isRescheduling = false;
+        $this->reschedulingAppointmentId = null;
+
+        $this->dispatch('swal:success', title: '¡Cita Reagendada!', text: 'Tu cita ha sido reprogramada con éxito. Se ha enviado un correo de confirmación.');
+    }
+}

@@ -1,3 +1,68 @@
+<p align="center"><a href="https://www.facebook.com/GiosalonAngienails" target="_blank"><img src="https://github.com/VictorChn/Proyecto_Final/blob/master/public/img/logo.png?raw=true" width="400" style="border-radius: 100%;" alt="Gio Salon & Angie Nails"></a></p>
+
+
+## Acerca del Proyecto
+Este proyecto es una aplicación web para una estetica, donde se podrán realizar citas, reagendarlas y cancelarlas, así como agregar los servicios con los que cuente dicha estetica y de igual manera agregar estilistas,  desarrollada mediante el framework de backend, Laravel, junto con otras dependencias:
+- TailwindCSS
+- Jetstream
+- Sanctum
+- Livewire
+- Spatie / Laravel Permission
+
+Ademas de utilizar una base de datos en MySQL con el sistema de XAMPP.
+
+## Comandos para su ejecución en un nuevo entorno
+En este caso si se busca iniciar este proyecto en un nuevo equipo es necesario que ejecute los siguientes comandos en una terminar que este dentro de la carpeta raíz del proyecto.
+
+Primero para instalar todas las librerias de PHP necesarias deberá de ejecutar el comando:
+```bash
+composer install
+```
+
+Y para instalar todas las dependencias del Frontend (Node.js) necesitamos ejecutar:
+```bash
+npm install
+```
+
+Del mismo modo para poder tener la base de datos lista y poder tener información para poder ejecutar pruebas necesitamos ejecutar el comando:
+```bash
+php artisan migrate --seed
+```
+
+## Credenciales de prueba
+En la aplicación se cuenta con 3 roles los cuales son:
+- Administrador
+- Estilista
+- Cliente
+
+Además de tener credenciales de prueba para cada uno siendo estos:
+
+```bash
+Rol: "Administrador"
+Email: "kualexander69@gmail.com"
+Password: "gio%Angie*"
+```
+
+```bash
+Rol: "Estilista"
+Email: "warrior3011232@gmail.com"
+Password: "D18e?ai#4k"
+```
+
+
+```bash
+Rol: "Cliente"
+Email: "s.p.a.r.c.k.0.1.1.9@gmail.com"
+Password: "Bn12_Al0"
+```
+
+
+## Modelo DER de la Base de datos
+
+
+## Recomendaciones Generales
+
+
 <p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400" alt="Laravel Logo"></a></p>
 
 <p align="center">

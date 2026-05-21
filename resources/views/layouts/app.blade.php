@@ -77,6 +77,23 @@
                 })
             });
 
+            window.addEventListener('swal:confirm-cancel-appointment', event => {
+                Swal.fire({
+                    title: '¿Estás seguro de cancelar esta cita?',
+                    text: "Esta acción marcará tu cita como cancelada y no se puede deshacer.",
+                    icon: 'warning',
+                    showCancelButton: true,
+                    confirmButtonColor: '#d33',
+                    cancelButtonColor: '#3085d6',
+                    confirmButtonText: 'Sí, cancelar cita',
+                    cancelButtonText: 'No, mantener'
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        Livewire.dispatch('cancel-appointment-confirmed', { id: event.detail.id });
+                    }
+                })
+            });
+
             window.addEventListener('swal:success', event => {
                 Swal.fire({
                     icon: 'success',
