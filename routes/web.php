@@ -41,7 +41,15 @@ Route::middleware(['auth:sanctum', 'role:Administrador'])->group(function(){
     })->name('admin.services');
 });
 
+Route::middleware(['auth:sanctum', 'role:Estilista'])->group(function(){
+    Route::get('/mi-agenda', function(){
+        return view('stylist.agenda');
+    })->name('stylist.agenda');
 
+    Route::get('/mi-historial', function(){
+        return view('stylist.historial');
+    })->name('stylist.historial');
+});
 Route::middleware(['auth:sanctum', 'role:Cliente'])->group(function(){
     Route::get('/seleccionar-servicios', function(){
         return view('sclient.seleccionar-servicios');

@@ -34,6 +34,21 @@
                     </x-nav-link>
                     @endif
 
+                    @if(Auth::user()->hasRole('Estilista'))
+                    <x-nav-link href="{{ route('stylist.agenda') }}" :active="request()->routeIs('stylist.agenda')">
+                        <div class="flex flex-col items-center gap-2">
+                            <i class="fa-solid fa-calendar-week text-xl"></i>
+                            {{ __('Mi Agenda') }}
+                        </div>
+                    </x-nav-link>
+                    <x-nav-link href="{{ route('stylist.historial') }}" :active="request()->routeIs('stylist.historial')">
+                        <div class="flex flex-col items-center gap-2">
+                            <i class="fa-solid fa-clock-rotate-left text-xl"></i>
+                            {{ __('Historial') }}
+                        </div>
+                    </x-nav-link>
+                    @endif
+
                     @if(Auth::user()->hasRole('Cliente'))
                     <x-nav-link href="{{ route('sclient.historial-citas') }}" :active="request()->routeIs('sclient.historial-citas')">
                         <div class="flex flex-col items-center gap-2">
@@ -178,6 +193,15 @@
             </x-responsive-nav-link>
             <x-responsive-nav-link href="{{ route('admin.services') }}" :active="request()->routeIs('admin.services')">
                 {{ __('Servicios') }}
+            </x-responsive-nav-link>
+            @endif
+
+            @if(Auth::user()->hasRole('Estilista'))
+            <x-responsive-nav-link href="{{ route('stylist.agenda') }}" :active="request()->routeIs('stylist.agenda')">
+                {{ __('Mi Agenda') }}
+            </x-responsive-nav-link>
+            <x-responsive-nav-link href="{{ route('stylist.historial') }}" :active="request()->routeIs('stylist.historial')">
+                {{ __('Historial') }}
             </x-responsive-nav-link>
             @endif
         </div>
