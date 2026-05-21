@@ -109,6 +109,14 @@
                                     </div>
                                 </div>
 
+                                @if($appointment->status !== 'cancelled' && $appointment->status !== 'cancelada')
+                                <div class="p-3 bg-white border-t border-gray-50 text-center">
+                                    <a href="{{ route('ticket.download', $appointment->id) }}" class="inline-flex items-center justify-center gap-2 text-xs font-bold text-[#c791e8] hover:text-[#a66cc9] transition bg-[#f8f5fa] hover:bg-purple-100 px-4 py-2 rounded-lg w-full">
+                                        <i class="fa-solid fa-file-pdf"></i> Descargar Ticket PDF
+                                    </a>
+                                </div>
+                                @endif
+
                             </div>
                         @endforeach
                     </div>

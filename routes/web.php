@@ -58,4 +58,7 @@ Route::middleware(['auth:sanctum', 'role:Cliente'])->group(function(){
 
         return view('sclient.historial-citas', compact('completedAppointments'));
     })->name('sclient.historial-citas');
+
+    Route::get('/historial-citas/{appointment}/ticket', [\App\Http\Controllers\TicketController::class, 'download'])
+        ->name('ticket.download');
 });
