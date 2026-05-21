@@ -113,7 +113,7 @@ Password: "Bn12_Al0"
 
 A continuación se muestra una representación visual de las tablas de la base de datos:
 
-<p align="center"><img src="https://github.com/VictorChn/Proyecto_Final/blob/master/public/img/logo.png?raw=true" width="900" style="border-radius: 100%;" alt="Gio Salon & Angie Nails"></p>
+<p align="center"><img src="https://github.com/VictorChn/Proyecto_Final/blob/master/public/img/Diagrama%20de%20Entidad-Relaci%C3%B3n%20(DER).png?raw=true" width="1200" alt="Diagrama DER"></p>
 
 ## Recomendaciones Generales
 
