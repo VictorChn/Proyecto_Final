@@ -1,67 +1,149 @@
 <p align="center"><a href="https://www.facebook.com/GiosalonAngienails" target="_blank"><img src="https://github.com/VictorChn/Proyecto_Final/blob/master/public/img/logo.png?raw=true" width="400" style="border-radius: 100%;" alt="Gio Salon & Angie Nails"></a></p>
 
-
 ## Acerca del Proyecto
-Este proyecto es una aplicación web para una estetica, donde se podrán realizar citas, reagendarlas y cancelarlas, así como agregar los servicios con los que cuente dicha estetica y de igual manera agregar estilistas,  desarrollada mediante el framework de backend, Laravel, junto con otras dependencias:
-- TailwindCSS
-- Jetstream
-- Sanctum
-- Livewire
-- Spatie / Laravel Permission
 
-Ademas de utilizar una base de datos en MySQL con el sistema de XAMPP.
+Este proyecto es una aplicación web para una **estetica**, donde se podrán realizar citas, reagendarlas y cancelarlas, así como agregar los servicios con los que cuente dicha estetica y de igual manera agregar estilistas, desarrollada mediante el framework de backend **Laravel**, junto con otras dependencias:
+
+- **TailwindCSS**, para los estilos y diseño.
+- **Jetstream**, para el sistema de autenticación y perfiles.
+- **Sanctum**, para la autenticación de API básica.
+- **Livewire**, para reactividad en el frontend y la creación de componentes dinamicos.
+- **Spatie / Laravel Permission**, para la administración de roles y permisos.
+
+Ademas de utilizar una base de datos en **MySQL** con el sistema de **XAMPP**.
 
 ## Comandos para su ejecución en un nuevo entorno
-En este caso si se busca iniciar este proyecto en un nuevo equipo es necesario que ejecute los siguientes comandos en una terminar que este dentro de la carpeta raíz del proyecto.
 
-Primero para instalar todas las librerias de PHP necesarias deberá de ejecutar el comando:
+Si buscas iniciar este proyecto en un nuevo equipo, es necesario realizar los siguientes pasos dentro de la carpeta raíz del proyecto:
+
+Primero, para instalar todas las librerías de PHP necesarias, ejecuta:
+
 ```bash
 composer install
 ```
 
-Y para instalar todas las dependencias del Frontend (Node.js) necesitamos ejecutar:
+### 1. Configuración del archivo de entorno `.env`
+
+Antes de generar claves o migrar la base de datos, es obligatorio crear tu archivo `.env` local copiando el archivo de ejemplo:
+
+- **En Windows (PowerShell):**
+    ```powershell
+    Copy-Item .env.example .env
+    ```
+- **En macOS / Linux / Git Bash / CMD:**
+    ```bash
+    cp .env.example .env
+    ```
+
+Luego, genera una clave de seguridad de la aplicación con el comando:
+
 ```bash
-npm install
+php artisan key:generate
 ```
 
-Del mismo modo para poder tener la base de datos lista y poder tener información para poder ejecutar pruebas necesitamos ejecutar el comando:
+### 2. Preparación de la Base de Datos
+
+Antes de ejecutar las migraciones, debes abrir **XAMPP**, iniciar **MySQL** y crear una base de datos vacía llamada:
+
+```sql
+gios_salon
+```
+
+Una vez creada, ejecuta el comando para crear las tablas y poblar la base de datos con los datos de prueba:
+
 ```bash
 php artisan migrate --seed
 ```
 
+### 3. Instalación de Frontend y Ejecución
+
+Para instalar todas las dependencias del Frontend (Node.js) ejecuta:
+
+```bash
+npm install
+```
+
+Ahora para iniciar el servidor de manera local necesitamos ejecutar el siguiente comando:
+
+```bash
+php artisan serve
+```
+
+Mientras que para cargar todos los estilos CSS en una terminal distinta necesitamos usar el comando de:
+
+```bash
+npm run dev
+```
+
+> [!TIP]
+> Puedes automatizar todo esto mediante el comando `composer run setup` y posteriormente usar `composer run dev` para iniciar el servidor.
+
 ## Credenciales de prueba
+
 En la aplicación se cuenta con 3 roles los cuales son:
+
 - Administrador
 - Estilista
 - Cliente
 
 Además de tener credenciales de prueba para cada uno siendo estos:
 
+### Administrador
+
 ```bash
-Rol: "Administrador"
 Email: "kualexander69@gmail.com"
 Password: "gio%Angie*"
 ```
 
+### Estilista
+
 ```bash
-Rol: "Estilista"
 Email: "warrior3011232@gmail.com"
 Password: "D18e?ai#4k"
 ```
 
+### Cliente
 
 ```bash
-Rol: "Cliente"
 Email: "s.p.a.r.c.k.0.1.1.9@gmail.com"
 Password: "Bn12_Al0"
 ```
 
-
 ## Modelo DER de la Base de datos
 
+A continuación se muestra una representación visual de las tablas de la base de datos:
+
+<p align="center"><img src="https://github.com/VictorChn/Proyecto_Final/blob/master/public/img/logo.png?raw=true" width="900" style="border-radius: 100%;" alt="Gio Salon & Angie Nails"></p>
 
 ## Recomendaciones Generales
 
+Tambien tenemos como cuestiones a considerar que para poder instalar todas las dependencias, ejecutar el servidor y todo lo que se ha mencionado anteriormente, necesitamos tener instalados:
+
+- [PHP](https://www.php.net). Para esta cuestión necesitamos que sea la versión 8.3 o Superior
+- [Composer](https://getcomposer.org). El cual es el gestor de paquetes para PHP.
+- [Node.js](https://nodejs.org/en/download/). El cual es el gestor de paquetes para JavaScript.
+- [XAMPP](https://www.apachefriends.org/index.html). El cual funciona como servidor para PHP, asi como incluir la base de datos MySQL.
+
+### Configuración del Envio de Correos
+
+De igual manera para poder hacer las pruebas de envios de correo es necesario que al ejecutar todos los comandos de setup, se va a generar un archivo .env, en este es necesario configurar el correo electrónico que realizará el envio de correos.
+
+Para este proyecto se recomienda usar Gmail. Esta configuración se encuentra en las lineas **50 - 56**:
+
+```bash
+MAIL_MAILER=smtp
+MAIL_HOST=smtp.gmail.com
+MAIL_PORT=465
+MAIL_USERNAME=tu-correo@gmail.com
+MAIL_PASSWORD=tu-contraseña-de-aplicación-de-google
+MAIL_ENCRYPTION=smtps
+MAIL_FROM_ADDRESS="tu-correo@gmail.com"
+```
+
+En su mayoría ya está la configuración, lo único que faltaría agregar es el correo desde el que se enviarán y la contraseña de aplicación.
+
+> [!IMPORTANT]
+> En `MAIL_PASSWORD` **no debes poner la contraseña tradicional** con la que ingresas a tu correo. Debes generar una **"Contraseña de Aplicación"** desde la configuración de seguridad de tu cuenta de Google. Si necesitas más información sobre cómo generar esta contraseña, haz clic [aquí](https://youtu.be/_BlFAbaMhuY?si=AA7Cm7M79ltutcNz).
 
 <p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400" alt="Laravel Logo"></a></p>
 
