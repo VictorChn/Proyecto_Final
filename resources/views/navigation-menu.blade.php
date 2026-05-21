@@ -32,6 +32,12 @@
                             {{ __('Servicios') }}
                         </div>
                     </x-nav-link>
+                    <x-nav-link href="{{ route('admin.settings') }}" :active="request()->routeIs('admin.settings')">
+                        <div class="flex flex-col items-center gap-2">
+                            <i class="fa-solid fa-gear text-xl"></i>
+                            {{ __('Configuración') }}
+                        </div>
+                    </x-nav-link>
                     @endif
 
                     @if(Auth::user()->hasRole('Estilista'))
@@ -184,24 +190,54 @@
     <div :class="{'block': open, 'hidden': ! open}" class="hidden sm:hidden">
         <div class="pt-2 pb-3 space-y-1">
             <x-responsive-nav-link href="{{ route('dashboard') }}" :active="request()->routeIs('dashboard')">
-                {{ __('Dashboard') }}
+                <div class="flex items-center gap-2">
+                    <i class="fa-solid fa-house text-lg"></i>
+                    {{ __('Dashboard') }}
+                </div>
             </x-responsive-nav-link>
 
             @if(Auth::user()->hasRole('Administrador'))
             <x-responsive-nav-link href="{{ route('admin.users') }}" :active="request()->routeIs('admin.users')">
-                {{ __('Estilistas') }}
+                <div class="flex items-center gap-2">
+                    <i class="fa-solid fa-user-tie text-lg"></i>
+                    {{ __('Estilistas') }}
+                </div>
             </x-responsive-nav-link>
             <x-responsive-nav-link href="{{ route('admin.services') }}" :active="request()->routeIs('admin.services')">
-                {{ __('Servicios') }}
+                <div class="flex items-center gap-2">
+                    <i class="fa-solid fa-scissors text-lg"></i>
+                    {{ __('Servicios') }}
+                </div>
+            </x-responsive-nav-link>
+            <x-responsive-nav-link href="{{ route('admin.settings') }}" :active="request()->routeIs('admin.settings')">
+                <div class="flex items-center gap-2">
+                    <i class="fa-solid fa-gear text-lg"></i>
+                    {{ __('Configuración') }}
+                </div>
             </x-responsive-nav-link>
             @endif
 
             @if(Auth::user()->hasRole('Estilista'))
             <x-responsive-nav-link href="{{ route('stylist.agenda') }}" :active="request()->routeIs('stylist.agenda')">
-                {{ __('Mi Agenda') }}
+                <div class="flex items-center gap-2">
+                    <i class="fa-solid fa-calendar-week text-lg"></i>
+                    {{ __('Mi Agenda') }}
+                </div>
             </x-responsive-nav-link>
             <x-responsive-nav-link href="{{ route('stylist.historial') }}" :active="request()->routeIs('stylist.historial')">
-                {{ __('Historial') }}
+                <div class="flex items-center gap-2">
+                    <i class="fa-solid fa-clock-rotate-left text-lg"></i>
+                    {{ __('Historial') }}
+                </div>
+            </x-responsive-nav-link>
+            @endif
+
+            @if(Auth::user()->hasRole('Cliente'))
+            <x-responsive-nav-link href="{{ route('sclient.historial-citas') }}" :active="request()->routeIs('sclient.historial-citas')">
+                <div class="flex items-center gap-2">
+                    <i class="fa-solid fa-calendar-check text-lg"></i>
+                    {{ __('Historial de citas') }}
+                </div>
             </x-responsive-nav-link>
             @endif
         </div>

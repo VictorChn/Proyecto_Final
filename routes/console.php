@@ -16,7 +16,14 @@ Artisan::command('inspire', function () {
     $this->comment(Inspiring::quote());
 })->purpose('Display an inspiring quote');
 
-// 1. Tarea Programada: Enviar agenda diaria a los Estilistas (Diariamente a las 7:00 PM)
+$notificationHour = '19';
+try {
+    $notificationHour = \App\Models\Setting::getVal('notification_hour', '19');
+} catch (\Exception $e) {
+    // Fallback if table doesn't exist yet
+}
+
+// 1. Tarea Programada: Enviar agenda diaria a los Estilistas (Diariamente a la hora configurada)
 Schedule::call(function () {
     $tomorrow = Carbon::tomorrow()->format('Y-m-d');
     $dateString = Carbon::tomorrow()->isoFormat('dddd, D [de] MMMM [de] YYYY');
@@ -40,7 +47,7 @@ Schedule::call(function () {
             }
         }
     }
-})->dailyAt('19:00')->name('send-stylist-daily-agenda');
+})->dailyAt("$notificationHour:00")->name('send-stylist-daily-agenda');
 
 // 2. Tarea Programada: Enviar reporte consolidado en PDF al Administrador (Diariamente a las 7:00 PM)
 Schedule::call(function () {
@@ -94,7 +101,7 @@ Schedule::call(function () {
             }
         }
     }
-})->dailyAt('19:00')->name('send-admin-daily-report');
+})->dailyAt("$notificationHour:00")->name('send-admin-daily-report');
 
 // 3. Tarea Programada: Recordatorio al Cliente 24h antes de su cita (Se ejecuta cada hora)
 Schedule::call(function () {

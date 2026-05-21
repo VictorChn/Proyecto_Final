@@ -39,6 +39,10 @@ Route::middleware(['auth:sanctum', 'role:Administrador'])->group(function(){
     Route::get('/admin/servicios', function(){
         return view('admin.services');
     })->name('admin.services');
+
+    Route::get('/admin/configuracion', function(){
+        return view('admin.settings');
+    })->name('admin.settings');
 });
 
 Route::middleware(['auth:sanctum', 'role:Estilista'])->group(function(){

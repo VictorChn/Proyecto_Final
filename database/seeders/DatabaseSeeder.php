@@ -20,5 +20,7 @@ class DatabaseSeeder extends Seeder
             AdminSeeder::class,
             ServiceSeeder::class,
         ]);
+
+        \App\Models\Setting::setVal('notification_hour', '19');
     }
 }
