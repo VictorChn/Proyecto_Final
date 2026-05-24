@@ -78,7 +78,17 @@
                 &copy; {{ date('Y') }} GIO & ANGIE Salón de Belleza. Todos los derechos reservados.
             </div>
         </footer>
-        
+                <!-- ═══ KOMMUNICATE CHATBOT WIDGET ═══ -->
+        <script type="text/javascript">
+            (function(d, m){
+                var kommunicateSettings = 
+                    {"appId":"35f74852ff3a2dde1de97178cf7148e56","popupWidget":true,"automaticChatOpenOnNavigation":true};
+                var s = document.createElement("script"); s.type = "text/javascript"; s.async = true;
+                s.src = "https://widget.kommunicate.io/kommunicate-widget-3.0.min.js";
+                var h = document.getElementsByTagName("head")[0]; h.appendChild(s);
+                window.kommunicate = m; m._globals = kommunicateSettings;
+            })(document, window.kommunicate || {});
+        </script>
 
         @if (Route::has('login'))
             <div class="h-14.5 hidden lg:block"></div>
