@@ -47,9 +47,15 @@
                         
                         <!-- Status Badges -->
                         @if($appointment->status === 'pending')
-                            <span class="px-2.5 py-0.5 bg-yellow-50 text-yellow-700 text-[10px] font-bold rounded-full uppercase tracking-wider">
-                                Pendiente
-                            </span>
+                            @if($appointment->payment_status === 'pending')
+                                <span class="px-2.5 py-0.5 bg-red-50 text-red-700 text-[10px] font-bold rounded-full uppercase tracking-wider animate-pulse">
+                                    Pendiente Pago
+                                </span>
+                            @else
+                                <span class="px-2.5 py-0.5 bg-yellow-50 text-yellow-700 text-[10px] font-bold rounded-full uppercase tracking-wider">
+                                    Pendiente
+                                </span>
+                            @endif
                         @elseif($appointment->status === 'approved' || $appointment->status === 'confirmed')
                             <span class="px-2.5 py-0.5 bg-green-50 text-green-700 text-[10px] font-bold rounded-full uppercase tracking-wider">
                                 Confirmada
@@ -101,7 +107,14 @@
 
                     <!-- Card Actions -->
                     <div class="p-4 bg-white border-t border-gray-50 flex gap-2">
-                        @if($isLocked)
+                        @if($appointment->payment_status === 'pending')
+                            <a href="{{ route('seleccionar-servicios', ['appointment_id' => $appointment->id]) }}" class="flex-1 py-2 bg-[#c791e8] text-white hover:bg-[#a66cc9] text-xs font-bold rounded-lg transition flex items-center justify-center gap-1.5 shadow-sm shadow-purple-50">
+                                <i class="fa-solid fa-credit-card text-[10px]"></i> Pagar Anticipo
+                            </a>
+                            <button wire:click="confirmCancel({{ $appointment->id }})" class="px-3 py-2 bg-red-50 text-red-600 hover:bg-red-100 text-xs font-semibold rounded-lg transition flex items-center justify-center gap-1.5" title="Cancelar cita no pagada">
+                                <i class="fa-regular fa-trash-can text-[10px]"></i>
+                            </button>
+                        @elseif($isLocked)
                             <button disabled class="flex-1 py-2 bg-gray-100 text-gray-450 text-xs font-bold rounded-lg cursor-not-allowed flex items-center justify-center gap-1.5 opacity-60" title="No modificable a menos de 24 horas">
                                 <i class="fa-solid fa-lock text-[10px] text-gray-400"></i> Reagendar
                             </button>
@@ -208,6 +221,168 @@
                         Confirmar Cambios <i class="fa-solid fa-check text-[10px]"></i>
                     </button>
                 </div>
+
+            </div>
+        </div>
+    @endif
+
+    <!-- Stripe Payment Success / Processing Modal -->
+    @if($showPaymentModal)
+        <div class="fixed inset-0 z-50 overflow-y-auto flex items-center justify-center p-4 bg-black/60 backdrop-blur-md animate-fade-in" 
+             @if($paymentStatus === 'processing') wire:poll.1500ms="checkPaymentStatus" @endif>
+            <div class="relative w-full max-w-md bg-white rounded-2xl shadow-2xl border border-purple-100 overflow-hidden transform transition-all p-6 text-center space-y-6">
+                
+                @if($paymentStatus === 'processing')
+                    <!-- PROCESSING STATE -->
+                    <div class="py-8 space-y-4">
+                        <div class="flex items-center justify-center">
+                            <div class="relative w-20 h-20">
+                                <!-- Outer glowing ring -->
+                                <div class="absolute inset-0 rounded-full border-4 border-purple-100 animate-pulse"></div>
+                                <!-- Inner spinning loader -->
+                                <div class="absolute inset-0 rounded-full border-4 border-t-[#c791e8] border-r-transparent border-b-transparent border-l-transparent animate-spin"></div>
+                                <!-- Center card icon -->
+                                <div class="absolute inset-0 flex items-center justify-center text-[#c791e8] text-2xl">
+                                    <i class="fa-solid fa-credit-card animate-bounce"></i>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="space-y-2">
+                            <h3 class="font-bold text-xl text-[#2c1a36]">Confirmando tu Pago de Anticipo</h3>
+                            <p class="text-xs text-gray-500 max-w-sm mx-auto">
+                                Estamos verificando la transacción con Stripe de manera segura. Tu cita se registrará automáticamente en unos segundos.
+                            </p>
+                        </div>
+
+                        <!-- Progress indicator / logs -->
+                        <div class="inline-flex items-center gap-2 px-3 py-1 bg-purple-50 text-[#c791e8] rounded-full text-[10px] font-semibold tracking-wide uppercase animate-pulse">
+                            <i class="fa-solid fa-circle-nodes"></i> Validando Pago (Intento {{ $pollAttempts }} de 15)
+                        </div>
+                    </div>
+
+                @elseif($paymentStatus === 'succeeded')
+                    <!-- SUCCESS STATE -->
+                    <div class="py-4 space-y-5">
+                        <!-- Success Checkmark Animation -->
+                        <div class="flex items-center justify-center">
+                            <div class="w-16 h-16 rounded-full bg-emerald-50 border-2 border-emerald-500 flex items-center justify-center text-emerald-500 text-3xl shadow-md shadow-emerald-50">
+                                <i class="fa-solid fa-circle-check"></i>
+                            </div>
+                        </div>
+
+                        <div class="space-y-1">
+                            <h3 class="font-bold text-2xl text-[#2c1a36]">¡Pago Completado!</h3>
+                            <p class="text-xs text-gray-400">Tu cita en Gio Salon & Angie Nails ha sido confirmada y registrada en nuestro calendario.</p>
+                        </div>
+
+                        @if($paidAppointment)
+                            <!-- Cita Info Box -->
+                            <div class="bg-[#f8f5fa] border border-purple-50/50 rounded-2xl p-4 text-left space-y-3">
+                                <div class="flex justify-between items-center border-b border-purple-100/50 pb-2">
+                                    <span class="text-[10px] font-bold text-purple-400 uppercase">Detalles de Reservación</span>
+                                    <span class="px-2 py-0.5 bg-green-50 text-green-700 text-[10px] font-bold rounded-full uppercase">Confirmada & Pagada</span>
+                                </div>
+                                
+                                <div class="grid grid-cols-2 gap-4 text-xs">
+                                    <div>
+                                        <span class="text-gray-400 block">Fecha y Hora</span>
+                                        <span class="font-bold text-[#2c1a36]">
+                                            {{ Carbon\Carbon::parse($paidAppointment->scheduled_date)->isoFormat('dddd, D [de] MMMM') }}<br>
+                                            <span class="text-[#c791e8] font-bold text-sm">{{ Carbon\Carbon::parse($paidAppointment->time)->format('g:i A') }}</span>
+                                        </span>
+                                    </div>
+                                    <div>
+                                        <span class="text-gray-400 block">Estilista</span>
+                                        <span class="font-bold text-[#2c1a36]">{{ $paidAppointment->specialist->user->name }}</span>
+                                    </div>
+                                </div>
+
+                                <div class="border-t border-purple-100/50 pt-2 space-y-1">
+                                    <span class="text-gray-400 text-[10px] block font-bold uppercase">Servicios</span>
+                                    <ul class="space-y-1 text-xs font-semibold text-gray-700 max-h-24 overflow-y-auto">
+                                        @foreach($paidAppointment->services as $service)
+                                            <li class="flex justify-between">
+                                                <span>• {{ $service->name }}</span>
+                                                <span class="text-gray-400">${{ number_format($service->price, 2) }} MXN</span>
+                                            </li>
+                                        @endforeach
+                                    </ul>
+                                </div>
+
+                                <div class="border-t border-dashed border-purple-200 pt-2 flex justify-between text-xs font-bold text-[#2c1a36]">
+                                    <span>Monto Total</span>
+                                    <span>${{ number_format($paidAppointment->services->sum('price'), 2) }} MXN</span>
+                                </div>
+                                <div class="flex justify-between text-xs font-bold text-[#c791e8]">
+                                    <span>Anticipo Abonado (50%)</span>
+                                    <span>${{ number_format($paidAppointment->amount_paid, 2) }} MXN</span>
+                                </div>
+                            </div>
+                        @endif
+
+                        <div class="p-3 bg-amber-50 border border-amber-200 rounded-xl flex gap-3 text-xs text-amber-800 text-left">
+                            <div class="text-lg text-amber-500 mt-0.5">
+                                <i class="fa-solid fa-envelope-open-text animate-pulse"></i>
+                            </div>
+                            <div>
+                                <span class="font-bold block text-[#2c1a36]">¡Correo enviado!</span>
+                                Hemos enviado la confirmación detallada con las políticas de servicio a tu correo registrado.
+                            </div>
+                        </div>
+
+                        <div class="pt-2">
+                            <button wire:click="closePaymentModal" class="w-full py-3 bg-[#c791e8] text-white hover:bg-[#a66cc9] transition font-bold rounded-xl text-xs flex items-center justify-center gap-2 shadow-lg shadow-purple-100">
+                                Entendido, ver mis citas <i class="fa-solid fa-circle-check"></i>
+                            </button>
+                        </div>
+                    </div>
+
+                @elseif($paymentStatus === 'timeout')
+                    <!-- TIMEOUT STATE -->
+                    <div class="py-6 space-y-4">
+                        <div class="flex items-center justify-center">
+                            <div class="w-16 h-16 rounded-full bg-amber-50 border-2 border-amber-500 flex items-center justify-center text-amber-500 text-3xl">
+                                <i class="fa-solid fa-circle-exclamation"></i>
+                            </div>
+                        </div>
+                        <div class="space-y-2">
+                            <h3 class="font-bold text-xl text-[#2c1a36]">La confirmación está tardando</h3>
+                            <p class="text-xs text-gray-500 max-w-sm mx-auto">
+                                Stripe procesó tu pago correctamente, pero el servidor está tomando más tiempo en registrar el estado. Tu espacio está seguro.
+                            </p>
+                        </div>
+                        <div class="pt-4 flex gap-3">
+                            <button wire:click="checkPaymentStatus" class="flex-1 py-2.5 border border-[#c791e8] text-[#c791e8] hover:bg-purple-50 transition font-semibold rounded-lg text-xs">
+                                <i class="fa-solid fa-arrows-rotate mr-1"></i> Verificar
+                            </button>
+                            <button wire:click="closePaymentModal" class="flex-1 py-2.5 bg-[#c791e8] text-white hover:bg-[#a66cc9] transition font-bold rounded-lg text-xs">
+                                Ir al Dashboard
+                            </button>
+                        </div>
+                    </div>
+
+                @else
+                    <!-- FAILED STATE -->
+                    <div class="py-6 space-y-4">
+                        <div class="flex items-center justify-center">
+                            <div class="w-16 h-16 rounded-full bg-red-50 border-2 border-red-500 flex items-center justify-center text-red-500 text-3xl">
+                                <i class="fa-solid fa-triangle-exclamation"></i>
+                            </div>
+                        </div>
+                        <div class="space-y-2">
+                            <h3 class="font-bold text-xl text-[#2c1a36]">Error al Verificar el Pago</h3>
+                            <p class="text-xs text-gray-500 max-w-sm mx-auto">
+                                No logramos confirmar el pago de tu anticipo. Si tu banco realizó el cargo, por favor comunícate a soporte técnico.
+                            </p>
+                        </div>
+                        <div class="pt-4">
+                            <button wire:click="closePaymentModal" class="w-full py-2.5 bg-red-600 text-white hover:bg-red-700 transition font-bold rounded-lg text-xs">
+                                Cerrar Ventana
+                            </button>
+                        </div>
+                    </div>
+                @endif
 
             </div>
         </div>

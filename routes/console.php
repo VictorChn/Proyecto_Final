@@ -216,3 +216,20 @@ Artisan::command('citas:probar-correos', function () {
 })->purpose('Simula y fuerza el envío inmediato de los correos programados para mañana.');
 
 
+// 5. Tarea Programada: Cancelar automáticamente citas pendientes de pago tras 15 minutos (Se ejecuta cada 5 minutos)
+Schedule::call(function () {
+    $unpaidAppointments = Appointment::where('status', 'pending')
+        ->where('payment_status', 'pending')
+        ->where('created_at', '<=', now()->subMinutes(15))
+        ->get();
+
+    foreach ($unpaidAppointments as $appt) {
+        // Cancelar de forma segura (para liberar el horario y limpiar el panel)
+        $appt->update([
+            'status' => 'cancelled',
+        ]);
+        logger()->info("Cita ID {$appt->id} cancelada automáticamente por falta de pago de anticipo (límite de 15 minutos excedido).");
+    }
+})->everyFiveMinutes()->name('cancel-unpaid-appointments');
+
+

@@ -1,7 +1,8 @@
 <div class="text-[#2c1a36]">
+    <script src="https://js.stripe.com/v3/"></script>
     <!-- Stepper Progress Bar -->
     <div class="mb-8">
-        <div class="flex items-center justify-between max-w-xl mx-auto">
+        <div class="flex items-center justify-between max-w-2xl mx-auto">
             <!-- Step 1 -->
             <div class="flex flex-col items-center">
                 <div class="w-10 h-10 rounded-full flex items-center justify-center font-bold text-sm transition-all duration-300 {{ $step >= 1 ? 'bg-[#c791e8] text-white shadow-lg' : 'bg-gray-200 text-gray-500' }}">
@@ -17,7 +18,7 @@
                 <div class="w-10 h-10 rounded-full flex items-center justify-center font-bold text-sm transition-all duration-300 {{ $step >= 2 ? 'bg-[#c791e8] text-white shadow-lg' : 'bg-gray-200 text-gray-500' }}">
                     2
                 </div>
-                <span class="text-xs font-semibold mt-2 {{ $step >= 2 ? 'text-[#2c1a36]' : 'text-gray-400' }}">Estilista y Horario</span>
+                <span class="text-xs font-semibold mt-2 {{ $step >= 2 ? 'text-[#2c1a36]' : 'text-gray-400' }}">Horario</span>
             </div>
 
             <div class="flex-1 h-1 mx-2 transition-all duration-300 {{ $step >= 3 ? 'bg-[#c791e8]' : 'bg-gray-200' }}"></div>
@@ -28,6 +29,16 @@
                     3
                 </div>
                 <span class="text-xs font-semibold mt-2 {{ $step >= 3 ? 'text-[#2c1a36]' : 'text-gray-400' }}">Confirmación</span>
+            </div>
+
+            <div class="flex-1 h-1 mx-2 transition-all duration-300 {{ $step >= 4 ? 'bg-[#c791e8]' : 'bg-gray-200' }}"></div>
+
+            <!-- Step 4 -->
+            <div class="flex flex-col items-center">
+                <div class="w-10 h-10 rounded-full flex items-center justify-center font-bold text-sm transition-all duration-300 {{ $step >= 4 ? 'bg-[#c791e8] text-white shadow-lg' : 'bg-gray-200 text-gray-500' }}">
+                    4
+                </div>
+                <span class="text-xs font-semibold mt-2 {{ $step >= 4 ? 'text-[#2c1a36]' : 'text-gray-400' }}">Pago Anticipo</span>
             </div>
         </div>
     </div>
@@ -416,6 +427,175 @@
                         <span wire:loading class="flex items-center gap-2">
                             <i class="fa-solid fa-spinner animate-spin"></i> Agendando...
                         </span>
+                    </button>
+                </div>
+            </div>
+        </div>
+    @endif
+
+    <!-- Step 4: Embedded Stripe Elements Payment -->
+    @if($step === 4)
+        <div class="max-w-2xl mx-auto" x-data="{
+            stripe: null,
+            elements: null,
+            loading: false,
+            errorMessage: '',
+            unloadHandler: null,
+            advanceAmount: {{ $advanceAmount }},
+            init() {
+                const stripeKey = '{{ config('services.stripe.key') }}';
+                const clientSecret = '{{ $stripeClientSecret }}';
+                if (!clientSecret || !stripeKey) return;
+                
+                this.stripe = Stripe(stripeKey);
+                this.elements = this.stripe.elements({
+                    clientSecret: clientSecret,
+                    appearance: {
+                        theme: 'stripe',
+                        variables: {
+                            colorPrimary: '#c791e8',
+                            colorBackground: '#ffffff',
+                            colorText: '#2c1a36',
+                            borderRadius: '12px',
+                        }
+                    }
+                });
+                
+                const paymentElement = this.elements.create('payment');
+                paymentElement.mount('#payment-element');
+
+                // Escuchar el cierre/recarga accidental
+                this.unloadHandler = (e) => {
+                    if (this.loading) return;
+                    e.preventDefault();
+                    e.returnValue = 'Si sales ahora, tu cita quedará pendiente de pago. Recuerda que puedes completarla en tu Dashboard dentro de los próximos 15 minutos, de lo contrario el horario se liberará.';
+                    return e.returnValue;
+                };
+                window.addEventListener('beforeunload', this.unloadHandler);
+            },
+            async submitPayment() {
+                if (this.loading) return;
+                this.loading = true;
+                this.errorMessage = '';
+
+                // Desactivar temporalmente el warning antes de la confirmación
+                if (this.unloadHandler) {
+                    window.removeEventListener('beforeunload', this.unloadHandler);
+                }
+                
+                const { error } = await this.stripe.confirmPayment({
+                    elements: this.elements,
+                    confirmParams: {
+                        return_url: '{{ route('dashboard') }}?payment=success',
+                    },
+                });
+                
+                if (error) {
+                    let friendlyMessage = error.message;
+                    if (error.code === 'card_declined') {
+                        if (error.decline_code === 'insufficient_funds') {
+                            friendlyMessage = '❌ Fondos Insuficientes: Tu tarjeta no cuenta con saldo suficiente para cubrir el anticipo del 50% ($' + parseFloat(this.advanceAmount).toFixed(2) + ' MXN). Por favor deposita fondos o intenta con otra tarjeta.';
+                        } else if (error.decline_code === 'expired_card') {
+                            friendlyMessage = '❌ Tarjeta Vencida: La tarjeta que ingresaste ha caducado. Por favor ingresa una tarjeta vigente.';
+                        } else if (error.decline_code === 'incorrect_cvc') {
+                            friendlyMessage = '❌ Código de Seguridad Incorrecto: El CVC (los 3 números al reverso) no es válido.';
+                        } else {
+                            friendlyMessage = '❌ Tarjeta Rechazada: El banco emisor ha rechazado la transacción. Por favor contacta a tu banco o intenta con otra tarjeta.';
+                        }
+                    } else if (error.code === 'expired_card') {
+                        friendlyMessage = '❌ Tarjeta Vencida: La tarjeta que ingresaste ha caducado. Por favor ingresa una tarjeta vigente.';
+                    } else if (error.code === 'incorrect_cvc') {
+                        friendlyMessage = '❌ Código de Seguridad Incorrecto: El CVC/CVV (los 3 números al reverso) no es válido. Revisa los datos e inténtalo de nuevo.';
+                    } else if (error.code === 'incorrect_number') {
+                        friendlyMessage = '❌ Número de Tarjeta Inválido: El número de tarjeta ingresado no es válido o tiene un error de dígito.';
+                    }
+                    
+                    this.errorMessage = friendlyMessage;
+                    this.loading = false;
+                    // Reactivar si el pago falla
+                    if (this.unloadHandler) {
+                        window.addEventListener('beforeunload', this.unloadHandler);
+                    }
+                }
+            }
+        }">
+            <div class="bg-white border border-gray-100 rounded-2xl shadow-lg overflow-hidden">
+                <!-- Header -->
+                <div class="bg-[#c791e8] p-6 text-white text-center">
+                    <i class="fa-solid fa-credit-card text-4xl mb-2 animate-pulse"></i>
+                    <h3 class="font-bold text-xl">Pago del Anticipo</h3>
+                    <p class="text-xs opacity-90 mt-1">Completa tu pago de forma segura.</p>
+                </div>
+
+                <!-- Body -->
+                <div class="p-6 space-y-6">
+                    <!-- Informative Inscription -->
+                    <div class="p-4 bg-amber-50 border border-amber-200 rounded-xl flex gap-3 text-xs text-amber-800">
+                        <div class="text-lg text-amber-500 mt-0.5">
+                            <i class="fa-solid fa-circle-exclamation"></i>
+                        </div>
+                        <div>
+                            <span class="font-bold block text-sm mb-1 text-amber-900">¡Importante para confirmar tu espacio!</span>
+                            Para que tu cita sea agendada y registrada oficialmente, se requiere realizar un <span class="font-bold">pago del 50% de anticipo</span> para apartar tu franja horaria.
+                        </div>
+                    </div>
+
+                    <!-- Warning Alert (Explaining the exit/reload behavior) -->
+                    <div class="p-4 bg-indigo-50 border border-indigo-200 rounded-xl flex gap-3 text-xs text-indigo-800">
+                        <div class="text-lg text-indigo-500 mt-0.5">
+                            <i class="fa-solid fa-circle-info"></i>
+                        </div>
+                        <div>
+                            <span class="font-bold block text-sm mb-1 text-indigo-900">¿Qué pasa si recargas o sales de la página?</span>
+                            <ul class="list-disc pl-4 mt-1 space-y-1 text-indigo-700">
+                                <li>Tu cita quedará en estado <span class="font-bold">"Pendiente de Pago"</span> temporalmente.</li>
+                                <li>Tendrás <span class="font-bold text-indigo-950">15 minutos</span> para completar este pago del 50% desde tu <span class="font-bold">Dashboard (Mis Citas Activas)</span>.</li>
+                                <li>Si no realizas el pago en ese lapso de 15 minutos, el sistema <span class="font-bold text-red-600">liberará automáticamente</span> el horario para que otros clientes puedan reservarlo.</li>
+                            </ul>
+                        </div>
+                    </div>
+
+                    <!-- Cancellation/Refund Inscription -->
+                    <div class="p-4 bg-red-50 border border-red-200 rounded-xl flex gap-3 text-xs text-red-800">
+                        <div class="text-lg text-red-500 mt-0.5">
+                            <i class="fa-solid fa-circle-exclamation"></i>
+                        </div>
+                        <div>
+                            <span class="font-bold block text-sm mb-1 text-red-900">Políticas de Cancelación y Reembolso</span>
+                            En caso de necesitar cancelar y solicitar un reembolso, se tendrá que poner en contacto mediante el siguiente correo: <span class="italic font-bold">gio&angie.spa@gmail.com</span>.
+                            <span class="block mt-2">En caso de no cancelar la cita dentro del periodo de 24 horas antes del servicio o de no asistir a la misma, no aplicará reembolso del anticipo.</span>
+                        </div>
+                    </div>
+
+                    <!-- Receipt Summary -->
+                    <div class="border border-gray-100 rounded-xl p-4 bg-[#f8f5fa] space-y-2">
+                        <div class="flex justify-between text-xs text-gray-500">
+                            <span>Costo Total de Servicios</span>
+                            <span class="font-semibold">${{ number_format($totalPrice, 2) }} MXN</span>
+                        </div>
+                        <div class="flex justify-between text-sm font-bold text-[#2c1a36] pt-2 border-t border-dashed border-gray-200">
+                            <span>Monto a abonar en este momento (50% de anticipo)</span>
+                            <span class="text-[#c791e8] text-base">${{ number_format($advanceAmount, 2) }} MXN</span>
+                        </div>
+                    </div>
+
+                    <!-- Stripe elements container -->
+                    <div class="space-y-4 pt-2">
+                        <label class="block text-xs font-bold text-gray-500 uppercase tracking-wider">Ingresa los datos de tu Tarjeta</label>
+                        <!-- Formulario de Stripe Elements -->
+                        <div id="payment-element" class="p-3 bg-gray-50 border border-gray-200 rounded-xl min-h-[150px]">
+                            <!-- Stripe.js inyectará el Payment Element aquí -->
+                        </div>
+                        <!-- Contenedor para mostrar errores -->
+                        <div x-show="errorMessage" x-text="errorMessage" class="text-xs text-red-500 font-semibold p-3 bg-red-50 border border-red-200 rounded-lg"></div>
+                    </div>
+                </div>
+
+                <!-- Footer Actions -->
+                <div class="p-6 bg-gray-50 border-t border-gray-100 flex items-center justify-end">
+                    <button @click="submitPayment()" :disabled="loading" class="px-6 py-2.5 bg-[#c791e8] text-white font-semibold rounded-lg hover:bg-[#a66cc9] transition shadow-md shadow-purple-100 text-xs flex items-center justify-center gap-2 w-full md:w-auto">
+                        <span x-show="!loading"><i class="fa-solid fa-lock mr-1"></i> Pagar Anticipo de ${{ number_format($advanceAmount, 2) }} MXN</span>
+                        <span x-show="loading"><i class="fa-solid fa-spinner animate-spin mr-1"></i> Procesando Pago...</span>
                     </button>
                 </div>
             </div>

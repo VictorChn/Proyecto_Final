@@ -20,7 +20,11 @@
 
                 <div>
                     <x-label for="category" value="Categoría" />
-                    <x-input id="category" type="text" class="mt-1 block w-full" wire:model="category" />
+                    <select id="category" class="mt-1 block w-full border-gray-300 focus:border-indigo-500 focus:ring-indigo-500 rounded-md shadow-sm text-sm" wire:model="category">
+                        <option value="">-- Selecciona una categoría --</option>
+                        <option value="Estilismo">Estilismo</option>
+                        <option value="Pedicura">Pedicura</option>
+                    </select>
                     <x-input-error for="category" class="mt-2" />
                 </div>
 

@@ -18,6 +18,9 @@ class Appointment extends Model
         'scheduled_date',
         'time',
         'status',
+        'stripe_session_id',
+        'payment_status',
+        'amount_paid',
     ];
 
     public function client(): BelongsTo

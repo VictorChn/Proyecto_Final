@@ -21,10 +21,14 @@ class SelectServices extends Component
     public $selectedSpecialistId = '';
     public $selectedDate = '';
     public $selectedTime = '';
+    public $stripeClientSecret = '';
+    public $advanceAmount = 0;
+    public $appointment_id = '';
     
     protected $queryString = [
         'search' => ['except' => ''],
         'selectedCategory' => ['except' => ''],
+        'appointment_id' => ['except' => ''],
     ];
 
     public function mount()
@@ -35,6 +39,36 @@ class SelectServices extends Component
             $this->selectedDate = $today->next(Carbon::MONDAY)->format('Y-m-d');
         } else {
             $this->selectedDate = $today->format('Y-m-d');
+        }
+
+        // Reanudar pago si se pasa el ID en la URL
+        if ($this->appointment_id) {
+            $appointment = Appointment::where('id', $this->appointment_id)
+                ->where('client_id', Auth::id())
+                ->where('status', 'pending')
+                ->where('payment_status', 'pending')
+                ->first();
+
+            if ($appointment) {
+                $appointment->load('services');
+                $totalCost = $appointment->services->sum('price');
+                $this->advanceAmount = $totalCost * 0.50;
+                $this->cart = $appointment->services->pluck('id')->toArray();
+
+                try {
+                    $paymentController = app(\App\Http\Controllers\PaymentController::class);
+                    $stripeRequest = new \Illuminate\Http\Request();
+                    $response = $paymentController->createPaymentIntent($stripeRequest, $appointment);
+                    $responseData = json_decode($response->getContent(), true);
+
+                    if (isset($responseData['client_secret'])) {
+                        $this->stripeClientSecret = $responseData['client_secret'];
+                        $this->step = 4; // Cargar directamente en el paso de pago embebido
+                    }
+                } catch (\Exception $e) {
+                    logger('Error al reanudar pago de Stripe: ' . $e->getMessage());
+                }
+            }
         }
     }
 
@@ -124,7 +158,14 @@ class SelectServices extends Component
         if ($specialist) {
             $existingAppointments = Appointment::where('specialist_id', $specialist->id)
                 ->where('scheduled_date', $this->selectedDate)
-                ->where('status', '!=', 'cancelled')
+                ->where(function($query) {
+                    $query->whereIn('status', ['confirmed', 'completed'])
+                          ->orWhere(function($q) {
+                              // Solo bloquear el horario si es pendiente y fue creada hace menos de 15 minutos (tiempo de checkout)
+                              $q->where('status', 'pending')
+                                ->where('created_at', '>=', now()->subMinutes(15));
+                          });
+                })
                 ->with('services')
                 ->get();
 
@@ -272,21 +313,27 @@ class SelectServices extends Component
         // Associate selected services in pivot table
         $appointment->services()->attach($this->cart);
 
-        // Eager load relations for the email
-        $appointment->load(['client', 'services']);
-
-        // Send confirmation email
+        // Generar el PaymentIntent de Stripe para pago embebido (50% de anticipo)
         try {
-            Mail::to(Auth::user()->email)->send(new AppointmentConfirmed($appointment));
-        } catch (\Exception $e) {
-            // Log or ignore email failures in local environments
-            logger('Error sending appointment confirmation email: ' . $e->getMessage());
-        }
+            $paymentController = app(\App\Http\Controllers\PaymentController::class);
+            
+            $stripeRequest = new \Illuminate\Http\Request();
+            $response = $paymentController->createPaymentIntent($stripeRequest, $appointment);
+            $responseData = json_decode($response->getContent(), true);
 
-        // Success Alert and redirect
-        $this->dispatch('swal:success', title: '¡Cita Agendada!', text: 'Tu cita ha sido programada con éxito. Se ha enviado un correo de confirmación.');
-        
-        return redirect()->route('dashboard');
+            if (isset($responseData['client_secret'])) {
+                $this->stripeClientSecret = $responseData['client_secret'];
+                $this->advanceAmount = $responseData['amount_to_pay'];
+                $this->step = 4; // Avanzar al nuevo paso del formulario embebido
+            } else {
+                $this->addError('selectedTime', 'Error al generar la pasarela de pago: ' . ($responseData['error'] ?? 'Desconocido'));
+                return;
+            }
+        } catch (\Exception $e) {
+            logger('Error al crear PaymentIntent de Stripe en Livewire: ' . $e->getMessage());
+            $this->addError('selectedTime', 'Hubo un error al conectar con la pasarela de pagos.');
+            return;
+        }
     }
 
     public function render()

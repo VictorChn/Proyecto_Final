@@ -19,9 +19,68 @@ class ActiveAppointments extends Component
     public $selectedDate = '';
     public $selectedTime = '';
 
+    // Stripe Success Polling Properties
+    public $showPaymentModal = false;
+    public $paymentIntentId = null;
+    public $paymentStatus = 'processing'; // 'processing', 'succeeded', 'failed', 'timeout'
+    public $paidAppointment = null;
+    public $pollAttempts = 0;
+
     public function mount()
     {
         $this->selectedDate = Carbon::today()->format('Y-m-d');
+
+        // Check if redirected from Stripe success
+        $paymentIntent = request()->query('payment_intent');
+        $redirectStatus = request()->query('redirect_status');
+
+        if ($paymentIntent && $redirectStatus === 'succeeded') {
+            $this->showPaymentModal = true;
+            $this->paymentIntentId = $paymentIntent;
+            $this->paymentStatus = 'processing';
+            $this->pollAttempts = 0;
+
+            // Run initial check
+            $this->checkPaymentStatus();
+        }
+    }
+
+    public function checkPaymentStatus()
+    {
+        if (!$this->paymentIntentId) {
+            return;
+        }
+
+        $this->pollAttempts++;
+
+        // Find the appointment with this Stripe PaymentIntent ID
+        $appointment = Appointment::where('stripe_session_id', $this->paymentIntentId)
+            ->with(['specialist.user', 'services'])
+            ->first();
+
+        if ($appointment) {
+            if ($appointment->payment_status === 'paid' && $appointment->status === 'confirmed') {
+                $this->paymentStatus = 'succeeded';
+                $this->paidAppointment = $appointment;
+            } elseif ($this->pollAttempts > 15) {
+                // If it takes more than 15 attempts (~22 seconds), show timeout with action button
+                $this->paymentStatus = 'timeout';
+            }
+        } else {
+            if ($this->pollAttempts > 15) {
+                $this->paymentStatus = 'failed';
+            }
+        }
+    }
+
+    public function closePaymentModal()
+    {
+        $this->showPaymentModal = false;
+        $this->paymentIntentId = null;
+        $this->paymentStatus = 'processing';
+        $this->paidAppointment = null;
+
+        return redirect()->route('dashboard');
     }
 
     public function render()

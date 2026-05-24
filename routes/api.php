@@ -4,10 +4,14 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
 use App\Http\Controllers\AuthController;
+use App\Http\Controllers\PaymentController;
+use App\Http\Controllers\StripeWebhookController;
 
 // Rutas Públicas
 Route::post('/register', [AuthController::class, 'register']);
 Route::post('/login', [AuthController::class, 'login']);
+Route::post('/stripe/webhook', [StripeWebhookController::class, 'handleWebhook']);
+Route::get('/test-stripe-payment', [PaymentController::class, 'testCheckout']);
 
 // Rutas Protegidas (Autenticadas con Sanctum)
 Route::middleware('auth:sanctum')->group(function () {
@@ -34,5 +38,6 @@ Route::middleware('auth:sanctum')->group(function () {
     // Grupo de Rutas Exclusivas para Clientes
     Route::middleware('role:client')->group(function () {
         // Aquí irán las rutas para que el cliente agende sus citas
+        Route::post('/appointments/{appointment}/checkout', [PaymentController::class, 'createCheckoutSession']);
     });
 });

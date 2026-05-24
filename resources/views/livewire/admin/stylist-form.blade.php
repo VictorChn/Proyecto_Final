@@ -24,11 +24,45 @@
                     <x-input-error for="phone" class="mt-2" />
                 </div>
 
-                <div>
+                <!-- Campo Contraseña Anterior (Solo cuando estamos editando) -->
+                @if($userId)
+                    <div x-data="{ showCurr: false }">
+                        <x-label for="current_password" value="Contraseña Anterior (Requerido para guardar cambios de contraseña)" />
+                        <div class="relative">
+                            <x-input id="current_password" ::type="showCurr ? 'text' : 'password'" class="mt-1 block w-full pr-10" wire:model="current_password" />
+                            <button type="button" @click="showCurr = !showCurr" class="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400 hover:text-gray-600">
+                                <i class="fa-solid" :class="showCurr ? 'fa-eye-slash' : 'fa-eye'"></i>
+                            </button>
+                        </div>
+                        <x-input-error for="current_password" class="mt-2" />
+                    </div>
+                @endif
+
+                <!-- Nueva Contraseña -->
+                <div x-data="{ showPass: false }">
                     <x-label for="password" value="{{ $userId ? 'Nueva Contraseña (dejar en blanco para no cambiar)' : 'Contraseña' }}" />
-                    <x-input id="password" type="password" class="mt-1 block w-full" wire:model="password" />
+                    <div class="relative">
+                        <x-input id="password" ::type="showPass ? 'text' : 'password'" class="mt-1 block w-full pr-10" wire:model="password" />
+                        <button type="button" @click="showPass = !showPass" class="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400 hover:text-gray-600">
+                            <i class="fa-solid" :class="showPass ? 'fa-eye-slash' : 'fa-eye'"></i>
+                        </button>
+                    </div>
                     <x-input-error for="password" class="mt-2" />
                 </div>
+
+                <!-- Confirmar Nueva Contraseña -->
+                @if(!$userId || $password || $current_password)
+                    <div x-data="{ showConfirm: false }">
+                        <x-label for="password_confirmation" value="Confirmar Contraseña" />
+                        <div class="relative">
+                            <x-input id="password_confirmation" ::type="showConfirm ? 'text' : 'password'" class="mt-1 block w-full pr-10" wire:model="password_confirmation" />
+                            <button type="button" @click="showConfirm = !showConfirm" class="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400 hover:text-gray-600">
+                                <i class="fa-solid" :class="showConfirm ? 'fa-eye-slash' : 'fa-eye'"></i>
+                            </button>
+                        </div>
+                        <x-input-error for="password_confirmation" class="mt-2" />
+                    </div>
+                @endif
             </div>
         </x-slot>
 
