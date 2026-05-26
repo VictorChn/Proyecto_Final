@@ -29,6 +29,11 @@ Route::middleware([
             return view('sclient.dashboard');
         }
     })->name('dashboard');
+
+    Route::post('/api/push-subscriptions', [\App\Http\Controllers\PushSubscriptionController::class, 'store'])
+        ->name('push-subscriptions.store');
+    Route::post('/api/push-subscriptions/delete', [\App\Http\Controllers\PushSubscriptionController::class, 'destroy'])
+        ->name('push-subscriptions.destroy');
 });
 
 Route::middleware(['auth:sanctum', 'role:Administrador'])->group(function(){

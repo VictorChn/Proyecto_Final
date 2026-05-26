@@ -68,4 +68,9 @@ class User extends Authenticatable
             'password' => 'hashed',
         ];
     }
+
+    public function pushSubscriptions(): \Illuminate\Database\Eloquent\Relations\HasMany
+    {
+        return $this->hasMany(PushSubscription::class);
+    }
 }

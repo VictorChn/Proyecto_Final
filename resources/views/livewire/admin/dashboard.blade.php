@@ -7,10 +7,10 @@
     </div>
 
     <!-- ═══ KPIs DEL DÍA ═══ -->
-    <div style="display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 1.5rem;" class="mb-8">
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6 mb-8">
 
         <!-- Ganancias del Día -->
-        <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 relative overflow-hidden">
+        <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-5 sm:p-6 relative overflow-hidden">
             <div class="absolute top-0 right-0 w-24 h-24 bg-green-50 rounded-full -mr-8 -mt-8"></div>
             <div class="relative">
                 <div class="w-10 h-10 rounded-xl bg-green-100 flex items-center justify-center mb-4">
@@ -23,7 +23,7 @@
         </div>
 
         <!-- Citas Hoy -->
-        <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 relative overflow-hidden">
+        <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-5 sm:p-6 relative overflow-hidden">
             <div class="absolute top-0 right-0 w-24 h-24 bg-purple-50 rounded-full -mr-8 -mt-8"></div>
             <div class="relative">
                 <div class="w-10 h-10 rounded-xl bg-purple-100 flex items-center justify-center mb-4">
@@ -36,7 +36,7 @@
         </div>
 
         <!-- No-Shows -->
-        <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 relative overflow-hidden">
+        <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-5 sm:p-6 relative overflow-hidden">
             <div class="absolute top-0 right-0 w-24 h-24 bg-red-50 rounded-full -mr-8 -mt-8"></div>
             <div class="relative">
                 <div class="w-10 h-10 rounded-xl bg-red-100 flex items-center justify-center mb-4">
@@ -49,7 +49,7 @@
         </div>
 
         <!-- Clientes Nuevos -->
-        <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 relative overflow-hidden">
+        <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-5 sm:p-6 relative overflow-hidden">
             <div class="absolute top-0 right-0 w-24 h-24 bg-blue-50 rounded-full -mr-8 -mt-8"></div>
             <div class="relative">
                 <div class="w-10 h-10 rounded-xl bg-blue-100 flex items-center justify-center mb-4">
@@ -63,7 +63,7 @@
     </div>
 
     <!-- ═══ FINANCIERO + TOP SERVICIOS ═══ -->
-    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem;" class="mb-8">
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6 mb-8">
 
         <!-- Resumen Financiero -->
         <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
@@ -146,10 +146,10 @@
     </div>
 
     <!-- ═══ TIMELINE DEL DÍA + ACTIVIDAD RECIENTE ═══ -->
-    <div style="display: grid; grid-template-columns: 1.5fr 1fr; gap: 1.5rem;">
+    <div class="grid grid-cols-1 lg:grid-cols-12 gap-4 sm:gap-6">
 
         <!-- Citas de Hoy (Timeline) -->
-        <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
+        <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden lg:col-span-7">
             <div class="bg-[#f8f5fa] px-6 py-4 border-b border-gray-100 flex items-center justify-between">
                 <h2 class="font-bold text-sm flex items-center gap-2">
                     <i class="fa-solid fa-clock text-[#c791e8]"></i> Agenda de Hoy
@@ -201,7 +201,7 @@
         </div>
 
         <!-- Actividad Reciente -->
-        <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
+        <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden lg:col-span-5">
             <div class="bg-[#f8f5fa] px-6 py-4 border-b border-gray-100">
                 <h2 class="font-bold text-sm flex items-center gap-2">
                     <i class="fa-solid fa-bolt text-[#c791e8]"></i> Actividad Reciente
