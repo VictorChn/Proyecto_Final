@@ -1,7 +1,7 @@
 <div class="text-[#2c1a36]" wire:poll.30s>
 
     <!-- ═══ HEADER ═══ -->
-    <div class="mb-8">
+    <div class="mb-8 px-5 lg:px-0">
         <h1 class="font-bold text-2xl tracking-tight">Panel de Administración</h1>
         <p class="text-xs text-gray-400 mt-1">Resumen general del negocio — {{ \Carbon\Carbon::now()->isoFormat('dddd, D [de] MMMM [de] YYYY') }}</p>
     </div>

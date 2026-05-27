@@ -19,23 +19,23 @@
         @vite(['resources/css/app.css', 'resources/js/app.js'])
     </head>
     <body class="bg-[#F6EBFF] text-[#2c1a36]">
-        <header class="mt-4 lg:mt-6 mx-auto w-full flex items-center justify-between lg:max-w-5xl max-w-[335px] text-sm mb-6 not-has-[nav]:hidden ">
+        <header class="mt-4 lg:mt-6 mx-auto w-full flex items-center justify-between max-w-5xl px-4 sm:px-6 lg:px-8 text-sm mb-6 not-has-[nav]:hidden">
             <div>
-                <img src="{{ asset('img/logo.png') }}" alt="Logo" class="w-18 lg:w-24 rounded-full">
+                <img src="{{ asset('img/logo.png') }}" alt="Logo" class="w-16 sm:w-20 lg:w-24 rounded-full shadow-sm border border-purple-50">
             </div>
             @if (Route::has('login'))
                 <nav class="flex justify-end items-center gap-4">
                     @auth
                         <a
                             href="{{ url('/dashboard') }}"
-                            class="inline-block px-5 py-1.5 border-[#19140035] hover:border-[#1915014a] border text-[#2c1a36] rounded-sm text-sm leading-normal"
+                            class="inline-block px-4 py-2 border border-[#c791e8] text-[#2c1a36] hover:bg-[#c791e8] hover:text-white font-semibold rounded-lg text-xs transition-all duration-200"
                         >
                             Dashboard
                         </a>
                     @else
                         <a
                             href="{{ route('login') }}"
-                            class="inline-block px-5 py-1.5 text-[#1b1b18] border-2 border-[#19140035] hover:border-[#a66cc9] hover:scale-110 transition-transform hover:text-[#a66cc9] rounded-sm text-sm leading-normal"
+                            class="inline-block px-4 py-2 text-[#2c1a36] border-2 border-[#c791e8] hover:bg-[#c791e8] hover:text-white font-semibold rounded-lg text-xs transition-all duration-200"
                         >
                             Iniciar Sesión
                         </a>

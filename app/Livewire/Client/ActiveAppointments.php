@@ -143,6 +143,32 @@ class ActiveAppointments extends Component
             logger('Error sending appointment cancellation email to stylist: ' . $e->getMessage());
         }
 
+        // Enviar notificaciones push a la Estilista y al Administrador
+        try {
+            $dateFormatted = Carbon::parse($appointment->scheduled_date)->format('d/m/Y');
+            $timeFormatted = Carbon::parse($appointment->time)->format('g:i A');
+
+            // 1. A la Estilista
+            if ($appointment->specialist && $appointment->specialist->user) {
+                \App\Services\PushNotificationService::send(
+                    $appointment->specialist->user,
+                    'Cita Cancelada 🗑️',
+                    "El cliente {$appointment->client->name} canceló su cita del {$dateFormatted} a las {$timeFormatted}.",
+                    '/dashboard'
+                );
+            }
+
+            // 2. Al Administrador
+            \App\Services\PushNotificationService::sendToRole(
+                'Administrador',
+                'Cita Cancelada 🗑️',
+                "El cliente {$appointment->client->name} canceló su cita del {$dateFormatted} a las {$timeFormatted}.",
+                '/dashboard'
+            );
+        } catch (\Exception $e) {
+            logger('Error al enviar notificaciones push de cancelación: ' . $e->getMessage());
+        }
+
         $this->dispatch('swal:success', title: '¡Cita Cancelada!', text: 'Tu cita ha sido cancelada correctamente y se ha notificado por correo.');
     }
 
@@ -304,6 +330,32 @@ class ActiveAppointments extends Component
             Mail::to($appointment->client->email)->send(new AppointmentRescheduled($appointment));
         } catch (\Exception $e) {
             logger('Error sending appointment reschedule email: ' . $e->getMessage());
+        }
+
+        // Enviar notificaciones push a la Estilista y al Administrador
+        try {
+            $dateFormatted = Carbon::parse($appointment->scheduled_date)->format('d/m/Y');
+            $timeFormatted = Carbon::parse($appointment->time)->format('g:i A');
+
+            // 1. A la Estilista
+            if ($appointment->specialist && $appointment->specialist->user) {
+                \App\Services\PushNotificationService::send(
+                    $appointment->specialist->user,
+                    'Cita Reagendada ⏰',
+                    "El cliente {$appointment->client->name} reagendó su cita para el {$dateFormatted} a las {$timeFormatted}.",
+                    '/dashboard'
+                );
+            }
+
+            // 2. Al Administrador
+            \App\Services\PushNotificationService::sendToRole(
+                'Administrador',
+                'Cita Reagendada ⏰',
+                "El cliente {$appointment->client->name} reagendó su cita para el {$dateFormatted} a las {$timeFormatted}.",
+                '/dashboard'
+            );
+        } catch (\Exception $e) {
+            logger('Error al enviar notificaciones push de reprogramación: ' . $e->getMessage());
         }
 
         $this->isRescheduling = false;

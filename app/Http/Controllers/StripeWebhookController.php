@@ -60,8 +60,42 @@ class StripeWebhookController extends Controller
                         logger('Error al enviar correo de confirmación tras pago: ' . $e->getMessage());
                     }
 
+                    // Enviar notificaciones push automáticas
+                    try {
+                        $dateFormatted = \Carbon\Carbon::parse($appointment->scheduled_date)->isoFormat('dddd D [de] MMMM');
+                        $timeFormatted = \Carbon\Carbon::parse($appointment->time)->format('g:i A');
+
+                        // 1. Al Cliente
+                        \App\Services\PushNotificationService::send(
+                            $appointment->client,
+                            '¡Pago Confirmado! 🎉',
+                            "Tu anticipo del 50% fue recibido. Cita agendada para el {$dateFormatted} a las {$timeFormatted}.",
+                            '/dashboard'
+                        );
+
+                        // 2. A la Estilista
+                        if ($appointment->specialist && $appointment->specialist->user) {
+                            \App\Services\PushNotificationService::send(
+                                $appointment->specialist->user,
+                                '¡Nueva Cita Confirmada! ✂️',
+                                "El cliente {$appointment->client->name} pagó su anticipo para el {$dateFormatted} a las {$timeFormatted}.",
+                                '/dashboard'
+                            );
+                        }
+
+                        // 3. Al Administrador
+                        \App\Services\PushNotificationService::sendToRole(
+                            'Administrador',
+                            'Nueva Cita Registrada 💅',
+                            "{$appointment->client->name} agendó cita con {$appointment->specialist->user->name} el {$dateFormatted} a las {$timeFormatted}.",
+                            '/dashboard'
+                        );
+                    } catch (\Exception $e) {
+                        logger('Error al enviar notificaciones push tras pago exitoso: ' . $e->getMessage());
+                    }
+
                     return response()->json([
-                        'message' => 'Cita confirmada y pago del anticipo registrado con éxito. Correo enviado.',
+                        'message' => 'Cita confirmada y pago del anticipo registrado con éxito. Correo y notificaciones push enviados.',
                         'appointment_id' => $appointmentId
                     ], 200);
                 }

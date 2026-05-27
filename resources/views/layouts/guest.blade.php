@@ -26,7 +26,7 @@
     </head>
     <body>
         <div class="font-sans text-[#2c1a36] antialiased bg-[#F6EBFF]">
-            {{ $slot }}
+            <div class="flex items-center justify-center w-full border">{{ $slot }}</div>
         </div>
 
         @livewireScripts

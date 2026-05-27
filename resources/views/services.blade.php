@@ -10,9 +10,9 @@
 <body class="bg-[#F6EBFF] text-[#2c1a36] font-sans antialiased min-h-screen flex flex-col">
     <!-- Navbar -->
     <header class="w-full bg-white shadow-sm">
-        <div class="max-w-7xl mx-auto px-4 md:px-6 lg:px-8 flex items-center justify-between lg:my-5">
+        <div class="max-w-7xl mx-auto mt-4 mb-6 px-4 md:px-6 lg:px-8 flex items-center justify-between lg:my-5">
             <a href="{{ url('/') }}" class="flex items-center gap-3 hover:opacity-80 transition">
-                <img src="{{ asset('img/logo.png') }}" alt="Logo" class="w-24 rounded-full">
+                <img src="{{ asset('img/logo.png') }}" alt="Logo" class="w-16 sm:w-20 lg:w-24 rounded-full">
             </a>
             @if (Route::has('login'))
                 <nav class="flex justify-end items-center gap-4">
