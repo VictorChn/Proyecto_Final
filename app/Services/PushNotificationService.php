@@ -59,11 +59,11 @@ class PushNotificationService
      */
     private static function dispatch($subscriptions, string $title, string $body, string $url): bool
     {
-        $publicKey = env('VAPID_PUBLIC_KEY');
-        $privateKey = env('VAPID_PRIVATE_KEY');
+        $publicKey = config('services.vapid.public_key');
+        $privateKey = config('services.vapid.private_key');
 
         if (!$publicKey || !$privateKey) {
-            logger()->error('[PWA Push] No se encontraron las llaves VAPID en las variables de entorno (.env).');
+            logger()->error('[PWA Push] No se encontraron las llaves VAPID en la configuración de servicios (config/services.php).');
             return false;
         }
 
