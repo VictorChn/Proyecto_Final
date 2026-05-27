@@ -16,9 +16,12 @@ Artisan::command('inspire', function () {
     $this->comment(Inspiring::quote());
 })->purpose('Display an inspiring quote');
 
-$notificationHour = '19';
+$notificationTime = '19:00';
 try {
-    $notificationHour = \App\Models\Setting::getVal('notification_hour', '19');
+    $notificationTime = \App\Models\Setting::getVal('notification_hour', '19:00');
+    if (strpos($notificationTime, ':') === false) {
+        $notificationTime = sprintf('%02d:00', (int)$notificationTime);
+    }
 } catch (\Exception $e) {
     // Fallback if table doesn't exist yet
 }
@@ -45,9 +48,22 @@ Schedule::call(function () {
             } catch (\Exception $e) {
                 logger()->error('Error al enviar agenda diaria al estilista ' . $specialist->user->email . ': ' . $e->getMessage());
             }
+
+            // Enviar notificación push de agenda al estilista
+            try {
+                $count = $appts->count();
+                \App\Services\PushNotificationService::send(
+                    $specialist->user,
+                    'Agenda de Citas Mañana ✂️',
+                    "Hola {$specialist->user->name}, mañana tienes {$count} cita(s) programada(s) en tu agenda.",
+                    '/dashboard'
+                );
+            } catch (\Exception $e) {
+                logger()->error('Error al enviar push de agenda al estilista: ' . $e->getMessage());
+            }
         }
     }
-})->dailyAt("$notificationHour:00")->name('send-stylist-daily-agenda');
+})->dailyAt($notificationTime)->name('send-stylist-daily-agenda');
 
 // 2. Tarea Programada: Enviar reporte consolidado en PDF al Administrador (Diariamente a las 7:00 PM)
 Schedule::call(function () {
@@ -99,9 +115,21 @@ Schedule::call(function () {
             } catch (\Exception $e) {
                 logger()->error('Error al enviar reporte diario al administrador ' . $admin->email . ': ' . $e->getMessage());
             }
+
+            // Enviar notificación push de reporte consolidado al administrador
+            try {
+                \App\Services\PushNotificationService::send(
+                    $admin,
+                    'Reporte Diario de Agenda 📊',
+                    "Mañana hay un total de {$totalAppointments} citas programadas con una recaudación estimada de $" . number_format($totalRevenue, 2) . " MXN.",
+                    '/dashboard'
+                );
+            } catch (\Exception $e) {
+                logger()->error('Error al enviar push de reporte al administrador: ' . $e->getMessage());
+            }
         }
     }
-})->dailyAt("$notificationHour:00")->name('send-admin-daily-report');
+})->dailyAt($notificationTime)->name('send-admin-daily-report');
 
 // 3. Tarea Programada: Recordatorio al Cliente 24h antes de su cita (Se ejecuta cada hora)
 Schedule::call(function () {
@@ -122,6 +150,21 @@ Schedule::call(function () {
                 Mail::to($appt->client->email)->send(new AppointmentReminder($appt));
             } catch (\Exception $e) {
                 logger()->error('Error al enviar recordatorio de cita al cliente ' . $appt->client->email . ': ' . $e->getMessage());
+            }
+        }
+
+        if ($appt->client) {
+            try {
+                $timeFormatted = Carbon::parse($appt->time)->format('g:i A');
+                $servicesFormatted = $appt->services->pluck('name')->implode(', ');
+                \App\Services\PushNotificationService::send(
+                    $appt->client,
+                    'Recordatorio de Cita mañana 📅',
+                    "Te recordamos tu cita de {$servicesFormatted} para mañana a las {$timeFormatted}.",
+                    '/dashboard'
+                );
+            } catch (\Exception $e) {
+                logger()->error('Error al enviar recordatorio push al cliente: ' . $e->getMessage());
             }
         }
     }
@@ -155,6 +198,20 @@ Artisan::command('citas:probar-correos', function () {
                 $this->info('   ¡Enviado con éxito!');
             } catch (\Exception $e) {
                 $this->error('   Error: ' . $e->getMessage());
+            }
+
+            $this->line('   -> Enviando agenda push a estilista: ' . $specialist->user->name . '...');
+            try {
+                $count = $appts->count();
+                \App\Services\PushNotificationService::send(
+                    $specialist->user,
+                    'Agenda de Citas Mañana ✂️',
+                    "Hola {$specialist->user->name}, mañana tienes {$count} cita(s) programada(s) en tu agenda.",
+                    '/dashboard'
+                );
+                $this->info('      ¡Push agenda estilista enviado con éxito!');
+            } catch (\Exception $e) {
+                $this->error('      Error Push estilista: ' . $e->getMessage());
             }
         }
     }
@@ -195,6 +252,19 @@ Artisan::command('citas:probar-correos', function () {
             } catch (\Exception $e) {
                 $this->error('   Error: ' . $e->getMessage());
             }
+
+            $this->line('   -> Enviando reporte consolidado push a Administrador: ' . $admin->name . '...');
+            try {
+                \App\Services\PushNotificationService::send(
+                    $admin,
+                    'Reporte Diario de Agenda 📊',
+                    "Mañana hay un total de {$totalAppointments} citas programadas con una recaudación estimada de $" . number_format($totalRevenue, 2) . " MXN.",
+                    '/dashboard'
+                );
+                $this->info('      ¡Push reporte administrador enviado con éxito!');
+            } catch (\Exception $e) {
+                $this->error('      Error Push reporte: ' . $e->getMessage());
+            }
         }
     }
 
@@ -208,6 +278,23 @@ Artisan::command('citas:probar-correos', function () {
                 $this->info('      ¡Enviado con éxito!');
             } catch (\Exception $e) {
                 $this->error('      Error: ' . $e->getMessage());
+            }
+        }
+
+        if ($appt->client) {
+            $this->line('   -> Enviando recordatorio push a cliente: ' . $appt->client->name . '...');
+            try {
+                $timeFormatted = Carbon::parse($appt->time)->format('g:i A');
+                $servicesFormatted = $appt->services->pluck('name')->implode(', ');
+                \App\Services\PushNotificationService::send(
+                    $appt->client,
+                    'Recordatorio de Cita mañana 📅',
+                    "Te recordamos tu cita de {$servicesFormatted} para mañana a las {$timeFormatted}.",
+                    '/dashboard'
+                );
+                $this->info('      ¡Push enviado con éxito!');
+            } catch (\Exception $e) {
+                $this->error('      Error Push: ' . $e->getMessage());
             }
         }
     }
@@ -229,6 +316,20 @@ Schedule::call(function () {
             'status' => 'cancelled',
         ]);
         logger()->info("Cita ID {$appt->id} cancelada automáticamente por falta de pago de anticipo (límite de 15 minutos excedido).");
+
+        // Enviar notificación push al cliente avisándole de la liberación de su espacio
+        if ($appt->client) {
+            try {
+                \App\Services\PushNotificationService::send(
+                    $appt->client,
+                    'Cita Liberada por Falta de Pago ⏰',
+                    'Tu cita pendiente ha sido liberada por expirar el límite de 15 minutos para el pago del anticipo.',
+                    '/seleccionar-servicios'
+                );
+            } catch (\Exception $e) {
+                logger()->error('Error al enviar notificación push de auto-cancelación: ' . $e->getMessage());
+            }
+        }
     }
 })->everyFiveMinutes()->name('cancel-unpaid-appointments');
 

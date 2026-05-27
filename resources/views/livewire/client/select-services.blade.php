@@ -412,6 +412,14 @@
                         <span class="text-sm font-semibold text-gray-500">Monto Total Estimado</span>
                         <span class="text-xl font-bold text-[#c791e8]">${{ number_format($totalPrice, 2) }}</span>
                     </div>
+
+                    <!-- Error Alert Container -->
+                    @if ($errors->any())
+                        <div class="mt-4 p-4 bg-red-50 border border-red-200 text-red-700 text-xs font-bold rounded-xl">
+                            <i class="fa-solid fa-triangle-exclamation mr-1 text-sm"></i>
+                            {{ $errors->first('selectedTime') ?: ($errors->first('selectedSpecialistId') ?: $errors->first('selectedDate')) }}
+                        </div>
+                    @endif
                 </div>
 
                 <!-- Footer Actions -->

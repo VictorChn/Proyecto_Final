@@ -44,13 +44,16 @@
                         <select wire:model.defer="notification_hour" id="notification_hour" 
                             class="block w-full pl-10 pr-4 py-3 bg-[#f8f5fa] border-0 focus:ring-2 focus:ring-[#c791e8] rounded-xl text-xs font-bold text-[#2c1a36] transition-all">
                             @for ($h = 0; $h < 24; $h++)
-                                @php
-                                    $ampm = $h >= 12 ? 'PM' : 'AM';
-                                    $displayH = $h % 12 ?: 12;
-                                    $paddedH = str_pad($h, 2, '0', STR_PAD_LEFT);
-                                    $label = "$paddedH:00 (" . str_pad($displayH, 2, '0', STR_PAD_LEFT) . ":00 $ampm)";
-                                @endphp
-                                <option value="{{ $h }}">{{ $label }}</option>
+                                @foreach (['00', '30'] as $m)
+                                    @php
+                                        $ampm = $h >= 12 ? 'PM' : 'AM';
+                                        $displayH = $h % 12 ?: 12;
+                                        $paddedH = str_pad($h, 2, '0', STR_PAD_LEFT);
+                                        $value = "$paddedH:$m";
+                                        $label = "$value (" . str_pad($displayH, 2, '0', STR_PAD_LEFT) . ":$m $ampm)";
+                                    @endphp
+                                    <option value="{{ $value }}">{{ $label }}</option>
+                                @endforeach
                             @endfor
                         </select>
                     </div>

@@ -10,18 +10,22 @@ class Settings extends Component
     public $notification_hour;
 
     protected $rules = [
-        'notification_hour' => 'required|integer|between:0,23',
+        'notification_hour' => 'required|string|regex:/^\d{2}:\d{2}$/',
     ];
 
     protected $messages = [
-        'notification_hour.required' => 'La hora de envío es obligatoria.',
-        'notification_hour.integer' => 'La hora debe ser un número entero.',
-        'notification_hour.between' => 'La hora debe estar entre las 00:00 y las 23:00.',
+        'notification_hour.required' => 'El horario de envío es obligatorio.',
+        'notification_hour.regex' => 'El formato del horario no es válido (debe ser HH:MM).',
     ];
 
     public function mount()
     {
-        $this->notification_hour = (int) Setting::getVal('notification_hour', 19);
+        $val = Setting::getVal('notification_hour', '19:00');
+        // Retrocompatibilidad con enteros antiguos (ej: "19")
+        if (strpos($val, ':') === false) {
+            $val = sprintf('%02d:00', (int)$val);
+        }
+        $this->notification_hour = $val;
     }
 
     public function save()

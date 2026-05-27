@@ -28,7 +28,6 @@ class AdminSeeder extends Seeder
             'email' => 's.p.a.r.c.k.0.1.1.9@gmail.com',
             'phone' => '9994358818',
             'password' => Hash::make('Bn12_Al0'),
-            'profile_photo_path' => 'profile-photos/yicAP3AxF8JJJlLDmlqMVsoPliTVKXKyh1Fkyej9.png',
         ]);
         $client->assignRole('Cliente');
 
@@ -37,7 +36,6 @@ class AdminSeeder extends Seeder
             'email' => 'warrior3011232@gmail.com',
             'phone' => '9983675794',
             'password' =>Hash::make('D18e?ai#4k'),
-            'profile_photo_path' => 'profile-photos/H8guYGRfrF27P6agfnhHlhiLXYgeO9ziJXph3lCc.jpg',
         ]);
         $stylist->assignRole('Estilista');
 

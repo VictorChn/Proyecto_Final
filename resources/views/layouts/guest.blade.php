@@ -5,6 +5,13 @@
         <meta name="viewport" content="width=device-width, initial-scale=1">
         <meta name="csrf-token" content="{{ csrf_token() }}">
 
+        <!-- PWA Meta Tags & Manifest -->
+        <meta name="theme-color" content="#2c1a36">
+        <link rel="manifest" href="/manifest.json">
+        <link rel="apple-touch-icon" href="/icons/icon-192x192.png">
+        <meta name="apple-mobile-web-app-capable" content="yes">
+        <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+
         <title>{{ config('app.name', 'Laravel') }}</title>
 
         <!-- Fonts -->
@@ -19,7 +26,7 @@
     </head>
     <body>
         <div class="font-sans text-[#2c1a36] antialiased bg-[#F6EBFF]">
-            {{ $slot }}
+            <div class="flex items-center justify-center w-full border">{{ $slot }}</div>
         </div>
 
         @livewireScripts
